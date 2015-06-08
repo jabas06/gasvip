@@ -1,5 +1,5 @@
 angular.module('starter.controllers')
-    .controller('LoginCtrl', function($scope, $ionicLoading, Auth, Ref) {
+    .controller('LoginCtrl', function($timeout, $state, $ionicLoading, Auth, Ref) {
         var self =  this;
 
         self.oauthLogin = oauthLogin;
@@ -58,12 +58,12 @@ angular.module('starter.controllers')
         function redirect() {
 
             $timeout(function() {
-                $location.path('/account');
+                $state.go('tab.account');
             });
         }
 
         function showError(err) {
-            $scope.err = err;
+            self.err = err;
         }
 
         // find a suitable info based on the meta info given by each provider
