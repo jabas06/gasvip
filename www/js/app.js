@@ -12,7 +12,8 @@ angular.module('starter', [
     'firebase',
     'firebase.ref',
     'firebase.auth',
-    'uiGmapgoogle-maps'
+    'uiGmapgoogle-maps',
+    'ngCordova'
 ])
 
     .run(function($ionicPlatform) {

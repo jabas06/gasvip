@@ -1,5 +1,5 @@
 angular.module('starter.controllers')
-    .controller('MapCtrl', function($scope, $ionicLoading) {
+    .controller('MapCtrl', function($scope, $timeout, $ionicLoading, $ionicPlatform, $cordovaGeolocation, $cordovaToast) {
         var self = this;
 
         self.myLocation = {
@@ -18,7 +18,7 @@ angular.module('starter.controllers')
         function drawMap (position) {
 
             //$scope.$apply is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
-            $scope.$apply(function() {
+            $timeout(function() {
                 self.myLocation.lng = position.coords.longitude;
                 self.myLocation.lat = position.coords.latitude;
 
@@ -52,15 +52,19 @@ angular.module('starter.controllers')
         function init() {
 
             $ionicLoading.show({
-                content: 'Getting current location...',
-                showBackdrop: false
+                template: 'Obteniendo ubicación...',
+                noBackdrop: false
             });
 
-            navigator.geolocation.getCurrentPosition(drawMap,
-                function(error) {
-                    alert('Unable to get location: ' + error.message);
-                    $ionicLoading.hide()
-                }
-            );
+            $ionicPlatform.ready(function() {
+                $cordovaGeolocation
+                    .getCurrentPosition({timeout: 10000, enableHighAccuracy: false})
+                    .then(drawMap, function(err) {
+                        $ionicLoading.hide()
+
+                        $cordovaToast
+                            .showShortCenter(err);
+                    });
+            });
         }
     });

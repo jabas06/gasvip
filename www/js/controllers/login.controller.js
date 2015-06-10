@@ -1,5 +1,5 @@
 angular.module('starter.controllers')
-    .controller('LoginCtrl', function($timeout, $state, $ionicLoading, Auth, Ref) {
+    .controller('LoginCtrl', function($timeout, $state, $ionicLoading, $cordovaOauth, $cordovaToast, Auth, Ref) {
         var self =  this;
 
         self.oauthLogin = oauthLogin;
@@ -10,16 +10,12 @@ angular.module('starter.controllers')
         // *********************************
 
         function oauthLogin(provider) {
-            self.err = null;
-
-            var options = {};
-
             if (provider === 'facebook')
             {
-                options.scope = 'email,user_likes';
+                $cordovaOauth.facebook('1613952282176354', ['email']).then(function(result) {
+                    Auth.$authWithOAuthToken("facebook", result.access_token).then(afterSuccessLogin, showError);
+                }, showError);
             }
-
-            Auth.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError);
         }
 
         function anonymousLogin() {
@@ -63,7 +59,8 @@ angular.module('starter.controllers')
         }
 
         function showError(err) {
-            self.err = err;
+            $cordovaToast
+                .showShortCenter(err);
         }
 
         // find a suitable info based on the meta info given by each provider
