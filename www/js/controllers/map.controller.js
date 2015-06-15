@@ -1,13 +1,25 @@
 angular.module('starter.controllers')
-    .controller('MapCtrl', function($scope, $timeout, $ionicLoading, $ionicPlatform, $cordovaGeolocation, $cordovaToast) {
+    .controller('MapCtrl', function($scope, $timeout, $ionicLoading, $ionicPlatform, $cordovaGeolocation, $cordovaToast, Ref, GeofireRef) {
         var self = this;
 
-        self.myLocation = {
-            lng : '43.07493',
-            lat: '-89.381388'
-        };
+        // Query radius
+        var radiusInKm = 10;
 
-        self.map = { center: { latitude: self.myLocation.lng, longitude: self.myLocation.lat }, zoom: 8 };
+        // Keep track of all of the stations currently within the query
+        var stationsInQuery = {};
+        var stationMarkers = [];
+
+        self.myLocation = { latitude: 20.589811, longitude: -100.411887};
+
+        // Create a new GeoQuery instance
+        var geoQuery = GeofireRef.query({
+            center: [self.myLocation.latitude, self.myLocation.longitude],
+            radius: radiusInKm
+        });
+
+        self.map = {center: {latitude: 20.58943571, longitude: -100.4115312 }, zoom: 16 };
+        self.mapOptions = {disableDefaultUI: true};
+        self.stationMarkers = stationMarkers;
 
         init();
 
@@ -15,34 +27,46 @@ angular.module('starter.controllers')
         // Internal
         // *********************************
 
+        /* Adds new vehicle markers to the map when they enter the query */
+        geoQuery.on("key_entered", function(stationId, stationLocation) {
+            // Specify that the station has entered this query
+            stationsInQuery[stationId] = true;
+
+            // Look up the station's data
+            Ref.child("stations").child(stationId).once("value", function(dataSnapshot) {
+
+                var station = dataSnapshot.val();
+
+                // If the station has not already exited this query in the time it took to look up its data in firebase
+                // Set, add it to the map
+                if (station !== null && stationsInQuery[dataSnapshot.key()] === true) {
+                    // Add the vehicle to the list of vehicles in the query
+                    stationsInQuery[dataSnapshot.key()] = station;
+
+                    // Create a new marker for the station
+                    station.id = dataSnapshot.key();
+                    station.latitude = station.lat;
+                    station.longitude = station.lon;
+                    station.icon = 'img/gas.png'
+                    station.title = station.name;
+
+                    $timeout(function() {
+                        stationMarkers.push(station);
+                    });
+                }
+            });
+        });
+
         function drawMap (position) {
 
-            //$scope.$apply is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
+            //$scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
             $timeout(function() {
-                self.myLocation.lng = position.coords.longitude;
-                self.myLocation.lat = position.coords.latitude;
+                self.myLocation.latitude = position.coords.latitude;
+                self.myLocation.longitude = position.coords.longitude;
 
-                self.map = {
-                    center: {
-                        latitude: self.myLocation.lat,
-                        longitude: self.myLocation.lng
-                    },
-                    zoom: 14,
-                    pan: 1
-                };
-
-                self.marker = {
-                    id: 0,
-                    coords: {
-                        latitude: self.myLocation.lat,
-                        longitude: self.myLocation.lng
-                    }
-                };
-
-                self.marker.options = {
-                    draggable: false,
-                    labelContent: '<div><a>Aqui estas</a></div>',
-                    labelClass: 'marker-labels'
+                self.map.center = {
+                        latitude: self.myLocation.latitude,
+                        longitude: self.myLocation.longitude
                 };
 
                 $ionicLoading.hide()
@@ -52,13 +76,20 @@ angular.module('starter.controllers')
         function init() {
 
             $ionicLoading.show({
-                template: 'Obteniendo ubicación...',
+                template: '<div>Obteniendo ubicación</div><ion-spinner></ion-spinner>',
                 noBackdrop: false
             });
 
             $ionicPlatform.ready(function() {
+                var position = {
+                    coords: {
+                        latitude: geoQuery.center[0],
+                        longitude: geoQuery.center[1]
+                        }
+                };
+
                 $cordovaGeolocation
-                    .getCurrentPosition({timeout: 10000, enableHighAccuracy: false})
+                    .getCurrentPosition({timeout: 20000, enableHighAccuracy: true})
                     .then(drawMap, function(err) {
                         $ionicLoading.hide()
 
