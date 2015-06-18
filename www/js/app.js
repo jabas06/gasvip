@@ -60,6 +60,16 @@ angular.module('starter', [
         // Each state's controller can be found in controllers.js
         $stateProvider
 
+            .state('login', {
+                url: '/login',
+                views: {
+                    'login': {
+                        templateUrl: 'templates/login.html',
+                        controller: 'LoginCtrl as vm'
+                    }
+                }
+            })
+
             // setup an abstract state for the tabs directive
             .state('tab', {
                 url: "/tab",
@@ -89,16 +99,6 @@ angular.module('starter', [
                 }
             })
 
-            .state('tab.login', {
-                url: '/login',
-                views: {
-                    'tab-account': {
-                        templateUrl: 'templates/login.html',
-                        controller: 'LoginCtrl as vm'
-                    }
-                }
-            })
-
             .state('tab.chats', {
                 url: '/chats',
                 views: {
@@ -108,6 +108,7 @@ angular.module('starter', [
                     }
                 }
             })
+
             .state('tab.chat-detail', {
                 url: '/chats/:chatId',
                 views: {
