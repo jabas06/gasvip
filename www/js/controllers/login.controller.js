@@ -1,5 +1,5 @@
 angular.module('starter.controllers')
-    .controller('LoginCtrl', function($timeout, $state, $ionicLoading, $cordovaOauth, $cordovaToast, Auth, Ref) {
+    .controller('LoginCtrl', function($timeout, $state, $ionicHistory, $ionicLoading, $cordovaOauth, $cordovaToast, Auth, Ref) {
         var self =  this;
 
         self.oauthLogin = oauthLogin;
@@ -54,6 +54,11 @@ angular.module('starter.controllers')
         function redirect() {
 
             $timeout(function() {
+                $ionicHistory.nextViewOptions({
+                    disableAnimate: true,
+                    disableBack: true
+                });
+
                 $state.go('tab.account');
             });
         }
