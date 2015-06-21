@@ -110,6 +110,14 @@ angular.module('starter.controllers')
             self.stationInfoWindow.show = false;
         }
 
+        $scope.$on('$ionicView.afterEnter', function(e) {
+            var mapEl = angular.element(document.querySelector('.angular-google-map'));
+            var iScope = mapEl.isolateScope();
+            if (iScope && iScope.map) {
+                var map = iScope.map;
+                google.maps.event.trigger(map, "resize");
+            }
+        });
 
         function init() {
 
