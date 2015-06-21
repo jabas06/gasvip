@@ -113,9 +113,8 @@ angular.module('starter.controllers')
         $scope.$on('$ionicView.afterEnter', function(e) {
             var mapEl = angular.element(document.querySelector('.angular-google-map'));
             var iScope = mapEl.isolateScope();
-            if (iScope && iScope.map) {
-                var map = iScope.map;
-                google.maps.event.trigger(map, "resize");
+            if (angular.isDefined(iScope) && angular.isDefined(iScope.map)) {
+                google.maps.event.trigger(iScope.map, "resize");
             }
         });
 
@@ -133,8 +132,8 @@ angular.module('starter.controllers')
                     .then(drawMap, function(err) {
                         $ionicLoading.hide()
 
-/*                        $cordovaToast
-                            .showShortCenter(err);*/
+                        $cordovaToast
+                            .showShortCenter(err);
                     });
             });
         }
