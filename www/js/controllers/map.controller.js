@@ -11,7 +11,6 @@ angular.module('starter.controllers')
         var stationMarkers = [];
 
         self.myLocation = {};
-
         self.map = { zoom: 16 };
         self.mapOptions = {disableDefaultUI: true};
         self.stationMarkers = stationMarkers;
@@ -22,8 +21,6 @@ angular.module('starter.controllers')
             templateUrl: 'templates/partials/station-info-window.html',
         };
 
-        // uiGmapGoogleMapApi is a promise.
-        // The "then" callback function provides the google.maps object.
         uiGmapGoogleMapApi.then(function(maps) {
             self.stationInfoWindow.options = {
                 pixelOffset: new maps.Size(-1, -15, 'px', 'px')
@@ -31,6 +28,8 @@ angular.module('starter.controllers')
         });
 
         self.markerWindowCloseClick = markerWindowCloseClick;
+        self.centerOnMyLocation = centerOnMyLocation;
+        self.test = function() {alert('hola')};
 
         init();
 
@@ -38,7 +37,7 @@ angular.module('starter.controllers')
         // Internal
         // *********************************
 
-        function drawMap (position) {
+        function centerMap (position) {
 
             // $scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
             $timeout(function() {
@@ -58,9 +57,6 @@ angular.module('starter.controllers')
 
                     geoQuery.on("key_entered", onStationEntered);
                 }
-
-                $ionicLoading.hide()
-
             });
         }
 
@@ -118,23 +114,25 @@ angular.module('starter.controllers')
             }
         });
 
-        function init() {
-
-            $ionicLoading.show({
-                template: '<div>Obteniendo ubicación</div><ion-spinner></ion-spinner>',
-                noBackdrop: false
-            });
-
+        function centerOnMyLocation()
+        {
             $ionicPlatform.ready(function() {
+
+                $ionicLoading.show({
+                    template: '<div>Obteniendo ubicación</div><ion-spinner></ion-spinner>',
+                    noBackdrop: false
+                });
 
                 $cordovaGeolocation
                     .getCurrentPosition({maximumAge: 3000, timeout: 10000, enableHighAccuracy: true})
-                    .then(drawMap, function(err) {
-                        $ionicLoading.hide()
-
-                        $cordovaToast
-                            .showShortCenter(err);
-                    });
+                    .then(centerMap, function(error) {
+                        /*$cordovaToast.showShortCenter(error);*/
+                    })
+                    .finally($ionicLoading.hide());
             });
+        }
+
+        function init() {
+            centerOnMyLocation();
         }
     });
