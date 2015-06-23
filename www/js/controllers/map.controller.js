@@ -1,5 +1,5 @@
 angular.module('starter.controllers')
-    .controller('MapCtrl', function($scope, $timeout, $ionicLoading, $ionicPlatform, $cordovaGeolocation, $cordovaToast, uiGmapGoogleMapApi, Ref, GeofireRef) {
+    .controller('MapCtrl', function($scope, $timeout, $ionicLoading, $ionicPlatform, $cordovaGeolocation, $cordovaToast, uiGmapGoogleMapApi, Ref, GeofireRef, mapWidgetsChannel) {
         var self = this;
 
         // Query radius
@@ -11,6 +11,16 @@ angular.module('starter.controllers')
         var stationMarkers = [];
 
         self.myLocation = {};
+        self.myLocationMarker = {
+            id: '1',
+            icon: {
+                url: 'img/blue-pin.png'
+            },
+            options: {
+                clickable: false,
+                visible: false
+            }
+        };
         self.map = { zoom: 16 };
         self.mapOptions = {disableDefaultUI: true};
         self.stationMarkers = stationMarkers;
@@ -29,7 +39,6 @@ angular.module('starter.controllers')
 
         self.markerWindowCloseClick = markerWindowCloseClick;
         self.centerOnMyLocation = centerOnMyLocation;
-        self.test = function() {alert('hola')};
 
         init();
 
@@ -49,6 +58,8 @@ angular.module('starter.controllers')
                         longitude: self.myLocation.longitude
                 };
 
+                self.myLocationMarker.options.visible = true;
+
                 if (!geoQuery) {
                     geoQuery = GeofireRef.query({
                         center: [self.myLocation.latitude, self.myLocation.longitude],
@@ -56,6 +67,12 @@ angular.module('starter.controllers')
                     });
 
                     geoQuery.on("key_entered", onStationEntered);
+                }
+                else {
+                    geoQuery.updateCriteria({
+                        center: [self.myLocation.latitude, self.myLocation.longitude],
+                        radius: radiusInKm
+                    });
                 }
             });
         }
@@ -116,12 +133,12 @@ angular.module('starter.controllers')
 
         function centerOnMyLocation()
         {
-            $ionicPlatform.ready(function() {
+            $ionicLoading.show({
+                template: '<div>Obteniendo ubicación</div><ion-spinner></ion-spinner>',
+                noBackdrop: false
+            });
 
-                $ionicLoading.show({
-                    template: '<div>Obteniendo ubicación</div><ion-spinner></ion-spinner>',
-                    noBackdrop: false
-                });
+            $ionicPlatform.ready(function() {
 
                 $cordovaGeolocation
                     .getCurrentPosition({maximumAge: 3000, timeout: 10000, enableHighAccuracy: true})
@@ -133,6 +150,14 @@ angular.module('starter.controllers')
         }
 
         function init() {
+
+            mapWidgetsChannel.add(centerOnMyLocation);
+
             centerOnMyLocation();
         }
+    })
+    .controller('MapWidgetsCtrl', function($scope, mapWidgetsChannel){
+        $scope.centerOnMyLocation = function (){
+            mapWidgetsChannel.invoke();
+        };
     });

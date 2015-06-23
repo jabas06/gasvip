@@ -181,3 +181,6 @@ angular.module('starter', [
 
     // used by route security
     .constant('SECURED_ROUTES', {});
+
+angular.module('starter.controllers', []);
+angular.module('starter.services', []);
