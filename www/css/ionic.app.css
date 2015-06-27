@@ -7675,6 +7675,9 @@ a.button {
   -webkit-transition-duration: 0s;
   transition-duration: 0s; }
 
+.dark {
+  background-color: #444; }
+
 .angular-google-map, .angular-google-map-container {
   height: 100%;
   width: 100%; }

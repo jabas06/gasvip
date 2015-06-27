@@ -143,7 +143,7 @@ angular.module('starter.controllers')
                 $cordovaGeolocation
                     .getCurrentPosition({maximumAge: 3000, timeout: 10000, enableHighAccuracy: true})
                     .then(centerMap, function(error) {
-                        /*$cordovaToast.showShortCenter(error);*/
+                        $cordovaToast.showShortCenter(error);
                     })
                     .finally($ionicLoading.hide());
             });

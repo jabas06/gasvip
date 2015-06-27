@@ -19,7 +19,11 @@ $dark:                            #444 !default;
 $ionicons-font-path: "../lib/ionic/fonts" !default;
 
 // Include all of Ionic
-@import "www/lib/ionic/scss/ionic";
+@import "../www/lib/ionic/scss/ionic";
+
+.dark{
+  background-color: $dark;
+}
 
 .angular-google-map, .angular-google-map-container {
   height: 100%;

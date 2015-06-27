@@ -29,14 +29,15 @@ angular.module('starter', [
             }
         });
     })
-/**
- * Adds a special `whenAuthenticated` method onto $stateProvider. This special method,
- * when called, invokes Auth.$requireAuth() service (see Auth.js).
- *
- * The promise either resolves to the authenticated user object and makes it available to
- * dependency injection (see AccountCtrl), or rejects the promise if user is not logged in,
- * forcing a redirect to the /login page
- */
+
+    /**
+     * Adds a special `whenAuthenticated` method onto $stateProvider. This special method,
+     * when called, invokes Auth.$requireAuth() service (see Auth.js).
+     *
+     * The promise either resolves to the authenticated user object and makes it available to
+     * dependency injection (see AccountCtrl), or rejects the promise if user is not logged in,
+     * forcing a redirect to the /login page
+     */
     .config(['$stateProvider', 'SECURED_ROUTES', function($stateProvider, SECURED_ROUTES) {
         // credits for this idea: https://groups.google.com/forum/#!msg/angular/dPr9BpIZID0/MgWVluo_Tg8J
         // unfortunately, a decorator cannot be use here because they are not applied until after
@@ -61,76 +62,44 @@ angular.module('starter', [
         $stateProvider
 
             // setup an abstract state for the tabs directive
-            .state('tab', {
-                url: "/tab",
+            .state('app', {
+                url: "/app",
                 abstract: true,
-                templateUrl: "templates/tabs.html"
+                templateUrl: "templates/menu.html"
             })
 
-            // Each tab has its own nav history stack:
-
-            .state('tab.dash', {
-                url: '/dash',
-                views: {
-                    'tab-dash': {
-                        templateUrl: 'templates/tab-dash.html',
-                        controller: 'DashCtrl'
-                    }
-                }
-            })
-
-            .state('tab.map', {
+            .state('app.map', {
                 url: '/map',
                 views: {
-                    'tab-map': {
-                        templateUrl: 'templates/tab-map.html',
+                    'menuContent': {
+                        templateUrl: 'templates/map.html',
                         controller: 'MapCtrl as vm'
                     }
                 }
             })
 
-            .state('tab.chats', {
-                url: '/chats',
-                views: {
-                    'tab-chats': {
-                        templateUrl: 'templates/tab-chats.html',
-                        controller: 'ChatsCtrl'
-                    }
-                }
-            })
-
-            .state('tab.chat-detail', {
-                url: '/chats/:chatId',
-                views: {
-                    'tab-chats': {
-                        templateUrl: 'templates/chat-detail.html',
-                        controller: 'ChatDetailCtrl'
-                    }
-                }
-            })
-
-            .state('tab.login', {
+            .state('app.login', {
                 url: '/login',
                 views: {
-                    'tab-account': {
+                    'menuContent': {
                         templateUrl: 'templates/login.html',
                         controller: 'LoginCtrl as vm'
                     }
                 }
             })
 
-            .authenticatedState('tab.account', {
+            .authenticatedState('app.account', {
                 url: '/account',
                 views: {
-                    'tab-account': {
-                        templateUrl: 'templates/tab-account.html',
+                    'menuContent': {
+                        templateUrl: 'templates/account.html',
                         controller: 'AccountCtrl'
                     }
                 }
             });
 
         // if none of the above states are matched, use this as the fallback
-        $urlRouterProvider.otherwise('/tab/map');
+        $urlRouterProvider.otherwise('/app/map');
 
     })
     .config(function(uiGmapGoogleMapApiProvider) {
@@ -140,12 +109,13 @@ angular.module('starter', [
             libraries: 'places'
         });
     })
-/**
- * Apply some route security. Any route's resolve method can reject the promise with
- * "AUTH_REQUIRED" to force a redirect. This method enforces that and also watches
- * for changes in auth status which might require us to navigate away from a path
- * that we can no longer view.
- */
+
+    /**
+     * Apply some route security. Any route's resolve method can reject the promise with
+     * "AUTH_REQUIRED" to force a redirect. This method enforces that and also watches
+     * for changes in auth status which might require us to navigate away from a path
+     * that we can no longer view.
+     */
     .run(['$rootScope', '$state', '$location', 'Auth', 'SECURED_ROUTES', 'loginRedirectState',
         function($rootScope, $state, $location, Auth, SECURED_ROUTES, loginRedirectState) {
             // watch for login status changes and redirect if appropriate

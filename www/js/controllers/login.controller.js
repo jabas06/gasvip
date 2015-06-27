@@ -26,6 +26,10 @@ angular.module('starter.controllers')
         function afterSuccessLogin(authData)
         {
             if (authData) {
+/*                $ionicLoading.show({
+                    noBackdrop: false
+                });*/
+
                 //Register the user if the account doesn't exist
                 Ref.child('users/'+authData.uid).once('value',  function(data) {
                     if (data.val() === null){
@@ -37,6 +41,7 @@ angular.module('starter.controllers')
                             name: userInfo.name,
                             email: userInfo.email
                         }, function(error) {
+
                             if (error) {
                                 showError(error);
                             } else {
@@ -47,25 +52,27 @@ angular.module('starter.controllers')
                     else {
                         redirect();
                     }
-                });
+                }, showError);
             }
         }
 
         function redirect() {
 
             $timeout(function() {
+                $ionicLoading.hide();
+
                 $ionicHistory.nextViewOptions({
                     disableAnimate: true,
                     disableBack: true
                 });
 
-                $state.go('tab.account');
+                $state.go('app.account');
             });
         }
 
-        function showError(err) {
-            $cordovaToast
-                .showShortCenter(err);
+        function showError(error) {
+            $ionicLoading.hide();
+            $cordovaToast.showShortCenter(error);
         }
 
         // find a suitable info based on the meta info given by each provider
