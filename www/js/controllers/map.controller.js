@@ -1,6 +1,10 @@
 angular.module('starter.controllers')
-    .controller('MapCtrl', function($scope, $timeout, $ionicLoading, $ionicPlatform, $cordovaGeolocation, $cordovaToast, uiGmapGoogleMapApi, Ref, GeofireRef, mapWidgetsChannel) {
+    .controller('MapCtrl', function($scope, $timeout, $ionicLoading, $ionicPlatform, $ionicModal, $cordovaGeolocation, $cordovaToast, uiGmapGoogleMapApi, Ref, GeofireRef, mapWidgetsChannel) {
         var self = this;
+
+        // Default rating
+        self.rating = 4;
+        self.max_rating = 5;
 
         // Query radius
         var radiusInKm = 10;
@@ -100,10 +104,13 @@ angular.module('starter.controllers')
                     station.longitude = station.lon;
                     station.icon = 'img/gas.png'
                     station.name = station.name;
-                    station.onClick = function() {
+                   /* station.onClick = function() {
                         self.stationInfoWindow.templateParameter = station;
                         self.stationInfoWindow.coords = { latitude: station.lat, longitude: station.lon }
                         self.stationInfoWindow.show = true;
+                    };*/
+                    station.onClick = function(){
+                        self.rateStationModal.show();
                     };
 
                     $timeout(function() {
@@ -150,6 +157,13 @@ angular.module('starter.controllers')
         }
 
         function init() {
+
+            // Create the rate modal that we will use later
+            $ionicModal.fromTemplateUrl('templates/rate-station.html', {
+                scope: $scope
+            }).then(function(modal) {
+                self.rateStationModal = modal;
+            });
 
             mapWidgetsChannel.add(centerOnMyLocation);
 

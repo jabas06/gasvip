@@ -7685,17 +7685,5 @@ a.button {
 .gmap-control:hover {
   color: #387ef5 !important; }
 
-/*
-ul.rating li {
-  display: inline;
-  border: 0px;
-  background: none;
-  padding: 5px 10px;
-}
-ul.rating li i {
-  font-size: 30px;
-}*/
-
 .rating {
-  font-size: 30px;
-}
+  font-size: 30px; }

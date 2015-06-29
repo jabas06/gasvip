@@ -1,0 +1,15 @@
+<ion-modal-view>
+    <ion-header-bar>
+        <h1 class="title">Evalua esta estación</h1>
+    </ion-header-bar>
+    <ion-content>
+        <form ng-submit="doLogin()">
+            <div class="list">
+                <label class="item item-input">
+                    <span class="input-label">Rating</span>
+                    <rating ng-model="rating" max="5" ></rating>
+                </label>
+            </div>
+        </form>
+    </ion-content>
+</ion-modal-view>
