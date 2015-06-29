@@ -2,12 +2,13 @@
     <ion-content data-tap-disabled="true" scroll="false">
         <script type="text/ng-template" id="myLocationControl.tpl.html">
             <div class="padding">
-                <button class="button button-positive icon ion-navigate"
-                        ng-click="centerOnMyLocation()"/>
+                <button class="button button-stable icon ion-android-locate gmap-control"
+                        ng-click="centerOnMyLocation()"></button>
             </div>
+
         </script>
         <ui-gmap-google-map center='vm.map.center' zoom='vm.map.zoom' options='vm.mapOptions' pan="true">
-            <ui-gmap-map-control template="myLocationControl.tpl.html" position="RIGHT_TOP"
+            <ui-gmap-map-control template="myLocationControl.tpl.html" position="RIGHT_BOTTOM"
                                  controller="MapWidgetsCtrl"/>
             <ui-gmap-window coords="vm.stationInfoWindow.coords" show="vm.stationInfoWindow.show"
                             options="vm.stationInfoWindow" closeClick="vm.markerWindowCloseClick()"

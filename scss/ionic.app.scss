@@ -29,3 +29,7 @@ $ionicons-font-path: "../lib/ionic/fonts" !default;
   height: 100%;
   width: 100%;
 }
+
+.gmap-control:hover {
+  color: $positive !important;
+}
