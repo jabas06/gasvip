@@ -9,6 +9,7 @@ angular.module('starter', [
     'ionic',
     'starter.controllers',
     'starter.services',
+    'starter.directives',
     'firebase',
     'firebase.ref',
     'firebase.auth',
@@ -146,6 +147,7 @@ angular.module('starter', [
         // track status of authentication
         Auth.$onAuth(function(user) {
             $rootScope.loggedIn = !!user;
+            $rootScope.globalUser = user;
         });
     }])
 
@@ -154,3 +156,4 @@ angular.module('starter', [
 
 angular.module('starter.controllers', []);
 angular.module('starter.services', []);
+angular.module('starter.directives', []);

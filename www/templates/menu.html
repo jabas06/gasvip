@@ -13,11 +13,14 @@
   </ion-side-menu-content>
 
   <ion-side-menu side="left">
-    <ion-header-bar class="bar-dark">
-      <h1 class="title">Menu</h1>
-    </ion-header-bar>
     <ion-content class="dark">
       <ion-list>
+        <ion-item class="item-royal" ng-show="loggedIn">
+            <div class="item-avatar">
+              <img ng-src="{{globalUser.facebook.cachedUserProfile.picture.data.url}}">
+            </div>
+          {{globalUser.facebook.displayName}}
+        </ion-item>
         <ion-item menu-close href="#/app/map" class="item-dark item-icon-left">
           <i class="icon ion-map"></i>Mapa
         </ion-item>

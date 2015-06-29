@@ -7,6 +7,8 @@ angular.module('starter.controllers')
         self.user = user;
         self.logout = logout;
 
+        self.rating = 4;
+        self.max_rating = 5;
 
         init();
 
