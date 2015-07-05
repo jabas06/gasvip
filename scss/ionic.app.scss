@@ -32,7 +32,7 @@ $royal:                           #070715 !default;
   width: 100%;
 }
 
-.gmap-control:hover {
+.gmap-control:active {
   color: $positive !important;
 }
 
@@ -46,4 +46,23 @@ $royal:                           #070715 !default;
   min-height: initial;
   top: initial;
   height: 33%;
+}
+
+.modal.modal-bottom-sheet .title {
+  font-size: 15px;
+  font-weight: 300;
+}
+
+.aligner {
+  display: flex;
+}
+
+.aligner.aligner-center-content {
+  -webkit-align-items: center;
+  -moz-align-items: center;
+  align-items: center;
+}
+
+.aligner-item {
+  max-width: 100%;
 }

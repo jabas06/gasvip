@@ -7700,7 +7700,7 @@ a.button {
   height: 100%;
   width: 100%; }
 
-.gmap-control:hover {
+.gmap-control:active {
   color: #387ef5 !important; }
 
 .rating {
@@ -7712,3 +7712,18 @@ a.button {
   min-height: initial;
   top: initial;
   height: 33%; }
+
+.modal.modal-bottom-sheet .title {
+  font-size: 15px;
+  font-weight: 300; }
+
+.aligner {
+  display: flex; }
+
+.aligner.aligner-center-content {
+  -webkit-align-items: center;
+  -moz-align-items: center;
+  align-items: center; }
+
+.aligner-item {
+  max-width: 100%; }

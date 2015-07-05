@@ -9,13 +9,24 @@ angular.module('starter.controllers')
         // Internal
         // *********************************
 
+
+
+
         function oauthLogin(provider) {
+            var options = {};
+
             if (provider === 'facebook')
             {
-                $cordovaOauth.facebook('1613952282176354', ['email']).then(function(result) {
-                    Auth.$authWithOAuthToken("facebook", result.access_token).then(afterSuccessLogin, showError);
-                }, showError);
+                options.scope = 'email,user_likes,user_about_me';
             }
+
+            Auth.$authWithOAuthRedirect(provider, options).then(afterSuccessLogin).catch(function(error) {
+                if (error.code === 'TRANSPORT_UNAVAILABLE') {
+                    Auth.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError);
+                } else {
+                    showError(error);
+                }
+            });
         }
 
         function anonymousLogin() {

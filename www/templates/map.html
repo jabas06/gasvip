@@ -1,15 +1,26 @@
 <ion-view view-title="Gasolineras VIP">
     <ion-content data-tap-disabled="true" scroll="false">
-        <script type="text/ng-template" id="myLocationControl.tpl.html">
+        <script type="text/ng-template" id="my-location-ctrl.tpl.html">
             <div class="padding">
                 <button class="button button-stable icon ion-android-locate gmap-control"
-                        ng-click="centerOnMyLocation()"></button>
+                        ng-click="mapvm.centerOnMyLocation()"></button>
+            </div>
+
+        </script>
+        <script type="text/ng-template" id="calculate-route-ctrl.tpl.html">
+            <div class="padding">
+                <button class="button button-stable gmap-control"
+                        ng-click="mapvm.calculateRoute()">Cómo llegar</button>
             </div>
 
         </script>
         <ui-gmap-google-map center='vm.map.center' zoom='vm.map.zoom' options='vm.mapOptions' pan="true">
-            <ui-gmap-map-control template="myLocationControl.tpl.html" position="RIGHT_BOTTOM"
-                                 controller="MapWidgetsCtrl"/>
+            <ui-gmap-map-control template="my-location-ctrl.tpl.html" position="RIGHT_BOTTOM"
+                                 controller="MapWidgetsCtrl as mapvm"/>
+
+            <ui-gmap-map-control template="calculate-route-ctrl.tpl.html" position="TOP_CENTER"
+                                 controller="MapWidgetsCtrl as mapvm"/>
+
             <ui-gmap-window coords="vm.stationInfoWindow.coords" show="vm.stationInfoWindow.show"
                             options="vm.stationInfoWindow" closeClick="vm.markerWindowCloseClick()"
                             templateUrl="vm.stationInfoWindow.templateUrl"

@@ -1,5 +1,7 @@
 angular.module('starter.controllers')
-    .controller('MapCtrl', function($scope, $timeout, $ionicLoading, $ionicPlatform, $ionicModal, $cordovaGeolocation, $cordovaToast, uiGmapGoogleMapApi, Ref, GeofireRef, mapWidgetsChannel) {
+    .controller('MapCtrl', function($scope, $timeout, $ionicLoading, $ionicPlatform, $ionicModal
+                                    , $cordovaGeolocation, $cordovaToast, uiGmapGoogleMapApi
+                                    , Ref, GeofireRef, mapWidgetsChannel, uiGmapIsReady) {
         var self = this;
 
         // Default rating
@@ -18,8 +20,15 @@ angular.module('starter.controllers')
         self.myLocationMarker = {
             id: '1',
             icon: {
-                url: 'img/blue-pin.png'
+                scale: 10,
+                fillOpacity: 1,
+                fillColor: '#387ef5', //'#11c1f3',
+                strokeColor: 'white',
+                strokeWeight: 2
             },
+            /*icon: {
+                url: 'img/blue-pin.png'
+            },*/
             options: {
                 clickable: false,
                 visible: false
@@ -27,6 +36,7 @@ angular.module('starter.controllers')
         };
         self.map = { zoom: 16 };
         self.mapOptions = {disableDefaultUI: true};
+        self.selectedStation = {};
         self.stationMarkers = stationMarkers;
         self.stationInfoWindow = {
             coords: {},
@@ -36,6 +46,8 @@ angular.module('starter.controllers')
         };
 
         uiGmapGoogleMapApi.then(function(maps) {
+            self.myLocationMarker.icon.path = maps.SymbolPath.CIRCLE;
+
             self.stationInfoWindow.options = {
                 pixelOffset: new maps.Size(-1, -15, 'px', 'px')
             };
@@ -43,6 +55,10 @@ angular.module('starter.controllers')
 
         self.markerWindowCloseClick = markerWindowCloseClick;
         self.centerOnMyLocation = centerOnMyLocation;
+        self.closeBottomSheet = closeBottomSheet;
+
+        var directionsService;
+        var directionsDisplay;
 
         init();
 
@@ -110,6 +126,7 @@ angular.module('starter.controllers')
                         self.stationInfoWindow.show = true;
                     };*/
                     station.onClick = function(){
+                        self.selectedStation = station;
                         self.rateStationModal.show();
                     };
 
@@ -131,11 +148,9 @@ angular.module('starter.controllers')
         }
 
         $scope.$on('$ionicView.afterEnter', function(e) {
-            var mapEl = angular.element(document.querySelector('.angular-google-map'));
-            var iScope = mapEl.isolateScope();
-            if (angular.isDefined(iScope) && angular.isDefined(iScope.map)) {
-                google.maps.event.trigger(iScope.map, "resize");
-            }
+            uiGmapIsReady.promise(1).then(function(instances) {
+                google.maps.event.trigger(instances[0].map, "resize");
+            });
         });
 
         function centerOnMyLocation()
@@ -156,6 +171,37 @@ angular.module('starter.controllers')
             });
         }
 
+        function calculateRoute() {
+            uiGmapGoogleMapApi.then( function(maps) {
+
+                directionsService = new maps.DirectionsService();
+                directionsDisplay = new maps.DirectionsRenderer();
+
+                return uiGmapIsReady.promise(1);
+            }).then( function(instances) {
+
+                var instanceMap = instances[0].map;
+
+                directionsDisplay.setMap(instanceMap);
+
+                var directionsServiceRequest = {
+                    origin: self.myLocation.latitude.toString() + "," + self.myLocation.longitude.toString(),
+                    destination: self.selectedStation.latitude.toString() + "," + self.selectedStation.longitude.toString(),
+                    travelMode: google.maps.TravelMode.DRIVING
+                };
+
+                directionsService.route(directionsServiceRequest, function(response, status) {
+                    if (status == google.maps.DirectionsStatus.OK) {
+                        directionsDisplay.setDirections(response);
+                    }
+                });
+            });
+        }
+
+        function closeBottomSheet(){
+            self.rateStationModal.hide()
+        }
+
         function init() {
 
             // Create the rate modal that we will use later
@@ -165,13 +211,20 @@ angular.module('starter.controllers')
                 self.rateStationModal = modal;
             });
 
-            mapWidgetsChannel.add(centerOnMyLocation);
+            mapWidgetsChannel.add('centerOnMyLocation', centerOnMyLocation);
+            mapWidgetsChannel.add('calculateRoute', calculateRoute);
 
             centerOnMyLocation();
         }
     })
-    .controller('MapWidgetsCtrl', function($scope, mapWidgetsChannel){
-        $scope.centerOnMyLocation = function (){
-            mapWidgetsChannel.invoke();
+    .controller('MapWidgetsCtrl', function(mapWidgetsChannel){
+        var self = this;
+
+        self.centerOnMyLocation = function (){
+            mapWidgetsChannel.invoke('centerOnMyLocation');
+        };
+
+        self.calculateRoute = function (){
+            mapWidgetsChannel.invoke('calculateRoute');
         };
     });
