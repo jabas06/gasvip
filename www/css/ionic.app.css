@@ -7706,14 +7706,14 @@ a.button {
 .rating {
   font-size: 30px; }
 
-.modal.modal-bottom-sheet {
+.modal.bottom-sheet {
   bottom: 0;
   height: 100px;
   min-height: initial;
   top: initial;
   height: 33%; }
 
-.modal.modal-bottom-sheet .title {
+.modal.bottom-sheet .title {
   font-size: 15px;
   font-weight: 300; }
 
