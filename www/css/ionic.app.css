@@ -7711,7 +7711,9 @@ a.button {
   height: 100px;
   min-height: initial;
   top: initial;
-  height: 33%; }
+  height: 33%;
+  border-width: 1px;
+  border-top-style: solid; }
 
 .modal.bottom-sheet .title {
   font-size: 15px;

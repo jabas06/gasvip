@@ -8,18 +8,19 @@
 
         </script>
         <script type="text/ng-template" id="calculate-route-ctrl.tpl.html">
-            <div class="padding">
+            <div class="padding" style="width: 150px">
                 <button class="button button-stable gmap-control"
-                        ng-click="mapvm.calculateRoute()">Cómo llegar</button>
+                        ng-click="mapvm.calculateRoute()" ng-show="mapvm.displayStationMapActions">
+                    Cómo llegar
+                </button>
             </div>
-
         </script>
         <ui-gmap-google-map center='vm.map.center' zoom='vm.map.zoom' options='vm.mapOptions' pan="true">
             <ui-gmap-map-control template="my-location-ctrl.tpl.html" position="RIGHT_BOTTOM"
-                                 controller="MapWidgetsCtrl as mapvm"/>
+                                 controller="MapGeneralWidgetsCtrl as mapvm"/>
 
             <ui-gmap-map-control template="calculate-route-ctrl.tpl.html" position="TOP_CENTER"
-                                 controller="MapWidgetsCtrl as mapvm"/>
+                                 controller="MapStationWidgetsCtrl as mapvm"/>
 
             <ui-gmap-window coords="vm.stationInfoWindow.coords" show="vm.stationInfoWindow.show"
                             options="vm.stationInfoWindow" closeClick="vm.markerWindowCloseClick()"

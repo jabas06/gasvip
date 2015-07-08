@@ -1,12 +1,11 @@
 angular.module('starter.controllers')
     .controller('MapCtrl', function($scope, $timeout, $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop
                                     , $cordovaGeolocation, $cordovaToast, Ref, GeofireRef
-                                    , mapWidgetsChannel, uiGmapIsReady) {
+                                    , mapWidgetsChannel, uiGmapIsReady, $log) {
         var self = this;
 
-        // Default rating
-        self.rating = 4;
-        self.max_rating = 5;
+        var directionsService = null;
+        var directionsDisplay = null;
 
         // Query radius
         var radiusInKm = 10;
@@ -15,6 +14,12 @@ angular.module('starter.controllers')
         // Keep track of all of the stations currently within the query
         var stationsInQuery = {};
         var stationMarkers = [];
+
+        var watchLocation;
+
+        // Default rating
+        self.rating = 4;
+        self.max_rating = 5;
 
         self.myLocation = {};
         self.myLocationMarker = {
@@ -58,13 +63,12 @@ angular.module('starter.controllers')
             templateParameter: {},
             templateUrl: 'templates/partials/station-info-window.html',
         };
+        self.bottomSheetModal = null;
 
         self.markerWindowCloseClick = markerWindowCloseClick;
         self.centerOnMyLocation = centerOnMyLocation;
         self.closeBottomSheet = closeBottomSheet;
-
-        var directionsService = null;
-        var directionsDisplay = null;
+        self.displayStationMapActions = false;
 
         init();
 
@@ -141,12 +145,8 @@ angular.module('starter.controllers')
                             strokeWeight: 2
                         };*/
                         self.selectedStation = station;
-                        //$ionicBackdrop.retain();
-                        self.rateStationModal.show();
-                        $timeout(function() {
-                            //$ionicBackdrop.release();
-                            /*$ionicBackdrop.release();*/
-                        }, 3000);
+                        self.bottomSheetModal.show();
+                        self.displayStationMapActions = true
                     };
 
                     $timeout(function() {
@@ -154,11 +154,6 @@ angular.module('starter.controllers')
                     });
                 }
             });
-        }
-
-        function markerClick()
-        {
-
         }
 
         function markerWindowCloseClick()
@@ -185,6 +180,7 @@ angular.module('starter.controllers')
                     .getCurrentPosition({maximumAge: 3000, timeout: 10000, enableHighAccuracy: true})
                     .then(centerMap, function(error) {
                         $cordovaToast.showShortCenter(error);
+                        //alert(error);
                     })
                     .finally($ionicLoading.hide());
             });
@@ -212,14 +208,15 @@ angular.module('starter.controllers')
                 directionsService.route(directionsServiceRequest, function(response, status) {
                     if (status == google.maps.DirectionsStatus.OK) {
                         directionsDisplay.setDirections(response);
-                        self.rateStationModal.hide();
+                        self.bottomSheetModal.hide();
                     }
                 });
             });
         }
 
         function closeBottomSheet(){
-            self.rateStationModal.hide()
+            self.bottomSheetModal.hide();
+            self.displayStationMapActions = false;
         }
 
         function init() {
@@ -233,11 +230,34 @@ angular.module('starter.controllers')
             });
 
             // Create the rate modal that we will use later
-            $ionicModal.fromTemplateUrl('templates/rate-station.html', {
+            $ionicModal.fromTemplateUrl('templates/map-bottom-sheet.html', {
                 scope: $scope,
-                viewType: 'bottom-sheet'
+                viewType: 'bottom-sheet',
+                animation: 'slide-in-up'
             }).then(function(modal) {
-                self.rateStationModal = modal;
+                self.bottomSheetModal = modal;
+            });
+
+            $ionicPlatform.ready(function() {
+                watchLocation = $cordovaGeolocation.watchPosition({maximumAge: 2000, timeout: 4000, enableHighAccuracy: true});
+                watchLocation.then(
+                    null,
+                    function(error) {
+                        $cordovaToast.showShortCenter(error);
+                        //alert(error);
+                    },
+                    function(position) {
+                        $log.log('watchPosition...');
+                        $log.log(position);
+                        // $scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
+                        $timeout(function() {
+                            $log.log('watchPosition...apply');
+                            self.myLocation.latitude = position.coords.latitude;
+                            self.myLocation.longitude = position.coords.longitude;
+
+                            self.myLocationMarker.options.visible = true;
+                        });
+                    });
             });
 
             mapWidgetsChannel.add('centerOnMyLocation', centerOnMyLocation);
@@ -246,14 +266,31 @@ angular.module('starter.controllers')
             centerOnMyLocation();
         }
     })
-    .controller('MapWidgetsCtrl', function(mapWidgetsChannel){
+    .controller('MapGeneralWidgetsCtrl', function($scope, $timeout, mapWidgetsChannel) {
         var self = this;
 
         self.centerOnMyLocation = function (){
             mapWidgetsChannel.invoke('centerOnMyLocation');
         };
+    })
+    .controller('MapStationWidgetsCtrl', function($scope, mapWidgetsChannel, uiGmapIsReady) {
+        var self = this;
+
+        self.displayStationMapActions = false;
 
         self.calculateRoute = function (){
             mapWidgetsChannel.invoke('calculateRoute');
         };
+
+        $scope.$on('bottom-sheet.shown', function(event) {
+            self.displayStationMapActions = true;
+            uiGmapIsReady.promise(1).then(function(instances) {
+                google.maps.event.trigger(instances[0].map, "resize");
+            });
+        });
+
+        $scope.$on('bottom-sheet.hidden', function(event) {
+            self.displayStationMapActions = false;
+        });
     });
+

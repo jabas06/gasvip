@@ -20,14 +20,9 @@ angular.module('starter.controllers')
                 options.scope = 'email,user_likes,user_about_me';
             }
 
-            Auth.$authWithOAuthRedirect(provider, options).then(afterSuccessLogin).catch(function(error) {
-                if (error.code === 'TRANSPORT_UNAVAILABLE') {
-                    Auth.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError);
-                } else {
-                    showError(error);
-                }
-            });
-        }
+            Auth.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError);
+
+        };
 
         function anonymousLogin() {
             self.err = null;
