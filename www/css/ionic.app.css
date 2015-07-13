@@ -7703,15 +7703,30 @@ a.button {
 .gmap-control:active {
   color: #387ef5 !important; }
 
-.rating {
-  font-size: 30px; }
+.rating i.rated, .rating i.unrated {
+  font-size: 32px;
+  color: #11c1f3; }
+
+.rating i.rated {
+  text-shadow: 0px 2px 2px #737373; }
+
+.rating .badge {
+  display: initial !important;
+  display: initial !important;
+  display: initial !important;
+  display: initial !important;
+  display: initial !important;
+  display: initial !important;
+  position: initial !important;
+  top: initial !important;
+  right: initial !important; }
 
 .modal.bottom-sheet {
   bottom: 0;
   height: 100px;
   min-height: initial;
   top: initial;
-  height: 33%;
+  height: 30%;
   border-width: 1px;
   border-top-style: solid; }
 
@@ -7729,3 +7744,6 @@ a.button {
 
 .aligner-item {
   max-width: 100%; }
+
+.station-name {
+  font-size: 32px; }

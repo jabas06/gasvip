@@ -17,25 +17,14 @@ angular.module('starter.controllers')
 
         var watchLocation;
 
-        // Default rating
-        self.rating = 4;
-        self.max_rating = 5;
-
         self.myLocation = {};
         self.myLocationMarker = {
             id: '1',
-/*            icon: {
-                scale: 10,
-                fillOpacity: 1,
-                fillColor: '#387ef5', //'#11c1f3',
-                strokeColor: 'white',
-                strokeWeight: 2
-            },*/
             icon: {
                 path: 0, // 0 is equal to google.maps.SymbolPath.CIRCLE
-                scale: 10,
+                scale: 7,
                 fillOpacity: 1,
-                fillColor: '#387ef5', //'#11c1f3',
+                fillColor: '#387ef5',
                 strokeColor: 'white',
                 strokeWeight: 2
              },
@@ -64,10 +53,14 @@ angular.module('starter.controllers')
             templateUrl: 'templates/partials/station-info-window.html',
         };
         self.bottomSheetModal = null;
+        self.rateStationModal = null;
 
         self.markerWindowCloseClick = markerWindowCloseClick;
         self.centerOnMyLocation = centerOnMyLocation;
         self.closeBottomSheet = closeBottomSheet;
+        self.closeRateStationModal = closeRateStationModal;
+        self.openRateStationModal = openRateStationModal;
+
         self.displayStationMapActions = false;
 
         init();
@@ -130,6 +123,7 @@ angular.module('starter.controllers')
                     station.longitude = station.lon;
                     station.icon = 'img/gas.png'
                     station.name = station.name;
+                    station.rating = 4.5;
                    /* station.onClick = function() {
                         self.stationInfoWindow.templateParameter = station;
                         self.stationInfoWindow.coords = { latitude: station.lat, longitude: station.lon }
@@ -161,12 +155,6 @@ angular.module('starter.controllers')
             self.stationInfoWindow.show = false;
         }
 
-        $scope.$on('$ionicView.afterEnter', function(e) {
-            uiGmapIsReady.promise(1).then(function(instances) {
-                google.maps.event.trigger(instances[0].map, "resize");
-            });
-        });
-
         function centerOnMyLocation()
         {
             $ionicLoading.show({
@@ -188,7 +176,7 @@ angular.module('starter.controllers')
 
         function calculateRoute() {
             uiGmapIsReady.promise(1).then( function(instances) {
-
+                console.log('uiGmapIsReady');
                 if (!directionsService)
                     directionsService = new google.maps.DirectionsService();
 
@@ -216,20 +204,35 @@ angular.module('starter.controllers')
 
         function closeBottomSheet(){
             self.bottomSheetModal.hide();
-            self.displayStationMapActions = false;
+        }
+
+        function closeRateStationModal(){
+            self.rateStationModal.hide();
+        }
+
+        function openRateStationModal(){
+            closeBottomSheet();
+            self.rateStationModal.show();
         }
 
         function init() {
 
-            uiGmapIsReady.promise(1).then(function() {
-                self.myLocationMarker.icon.path = google.maps.SymbolPath.CIRCLE;
+            $scope.$on('$ionicView.afterEnter', function(e) {
+                uiGmapIsReady.promise(1).then(function(instances) {
+                    google.maps.event.trigger(instances[0].map, "resize");
+                });
+            });
 
+            $scope.$on('$ionicView.beforeLeave', function(e) {
+               closeBottomSheet();
+            });
+
+            uiGmapIsReady.promise(1).then(function() {
                 self.stationInfoWindow.options = {
                     pixelOffset: new google.maps.Size(-1, -15, 'px', 'px')
                 };
             });
 
-            // Create the rate modal that we will use later
             $ionicModal.fromTemplateUrl('templates/map-bottom-sheet.html', {
                 scope: $scope,
                 viewType: 'bottom-sheet',
@@ -238,8 +241,14 @@ angular.module('starter.controllers')
                 self.bottomSheetModal = modal;
             });
 
+            $ionicModal.fromTemplateUrl('templates/rate-station.html', {
+                scope: $scope,
+            }).then(function(modal) {
+                self.rateStationModal = modal;
+            });
+
             $ionicPlatform.ready(function() {
-                watchLocation = $cordovaGeolocation.watchPosition({maximumAge: 2000, timeout: 4000, enableHighAccuracy: true});
+               /* watchLocation = $cordovaGeolocation.watchPosition({maximumAge: 2000, timeout: 4000, enableHighAccuracy: true});
                 watchLocation.then(
                     null,
                     function(error) {
@@ -247,17 +256,14 @@ angular.module('starter.controllers')
                         //alert(error);
                     },
                     function(position) {
-                        $log.log('watchPosition...');
-                        $log.log(position);
                         // $scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
                         $timeout(function() {
-                            $log.log('watchPosition...apply');
                             self.myLocation.latitude = position.coords.latitude;
                             self.myLocation.longitude = position.coords.longitude;
 
                             self.myLocationMarker.options.visible = true;
                         });
-                    });
+                    });*/
             });
 
             mapWidgetsChannel.add('centerOnMyLocation', centerOnMyLocation);

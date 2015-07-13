@@ -1,6 +1,6 @@
 <ion-bottom-sheet-view class="stable-border">
     <ion-header-bar align-title="left">
-        <h3 class="title">{{vm.selectedStation.name}}</h3>
+        <h3 class="title"></h3>
         <button class="button button-icon icon ion-android-close" ng-click="vm.closeBottomSheet()"></button>
     </ion-header-bar>
     <ion-content>
@@ -9,14 +9,18 @@
                 <img src="img/gas-station.png" class="aligner-item"/>
             </div>
             <div class="col col-80">
-                <form ng-submit="doLogin()">
-                    <div class="list">
-                        <label class="item item-input">
-                            <span class="input-label">Rating</span>
-                        </label>
-                        <rating ng-model="rating" max="5" ></rating>
+                <div class="list">
+                    <div class="item item-divider">
+                        <h3 class="title">{{vm.selectedStation.name}}</h3>
                     </div>
-                </form>
+                    <a class="item item-icon-left item-icon-right rating" ng-click="vm.openRateStationModal()">
+                        <i class="icon ion-ios-star rated"></i>
+                        <span class="badge badge-positive" ng-bind="vm.selectedStation.rating"></span>
+                        <i class="icon ion-arrow-right-c"></i>
+                    </a>
+
+                </div>
+
             </div>
         </div>
     </ion-content>

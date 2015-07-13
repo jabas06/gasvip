@@ -36,8 +36,27 @@ $royal:                           #070715 !default;
   color: $positive !important;
 }
 
-.rating {
-  font-size: 30px;
+.rating i.rated, .rating i.unrated {
+  font-size: 32px;
+  color: $calm;
+}
+
+.rating i.rated,
+{
+  text-shadow: 0px 2px 2px #737373;
+}
+
+.rating .badge
+{
+  display: initial !important;
+  display: initial !important;
+  display: initial !important;
+  display: initial !important;
+  display: initial !important;
+  display: initial !important;
+  position: initial !important;
+  top: initial !important;
+  right: initial !important;
 }
 
 .modal.bottom-sheet {
@@ -45,7 +64,7 @@ $royal:                           #070715 !default;
   height: 100px;
   min-height: initial;
   top: initial;
-  height: 33%;
+  height: 30%;
   border-width: 1px;
   border-top-style: solid;
 }
@@ -67,4 +86,8 @@ $royal:                           #070715 !default;
 
 .aligner-item {
   max-width: 100%;
+}
+
+.station-name {
+  font-size: 32px;
 }
