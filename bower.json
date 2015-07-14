@@ -8,6 +8,7 @@
     "angular-google-maps": "~2.1.1",
     "angularfire": "~1.1.1",
     "ngCordova": "~0.1.17-alpha",
-    "geofire": "~3.2.2"
+    "geofire": "~3.2.2",
+    "angular-ui-validate": "~1.1.0"
   }
 }

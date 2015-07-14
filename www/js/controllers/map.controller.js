@@ -1,7 +1,7 @@
 angular.module('starter.controllers')
     .controller('MapCtrl', function($scope, $timeout, $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop
                                     , $cordovaGeolocation, $cordovaToast, Ref, GeofireRef
-                                    , mapWidgetsChannel, uiGmapIsReady, $log) {
+                                    , mapWidgetsChannel, uiGmapIsReady, $log, Auth) {
         var self = this;
 
         var directionsService = null;
@@ -55,6 +55,10 @@ angular.module('starter.controllers')
         self.bottomSheetModal = null;
         self.rateStationModal = null;
 
+        self.newStationRating = {
+            rating: 0
+        };
+
         self.markerWindowCloseClick = markerWindowCloseClick;
         self.centerOnMyLocation = centerOnMyLocation;
         self.closeBottomSheet = closeBottomSheet;
@@ -62,6 +66,9 @@ angular.module('starter.controllers')
         self.openRateStationModal = openRateStationModal;
 
         self.displayStationMapActions = false;
+
+        self.submitStationRating = submitStationRating;
+        self.whatToImproveIsValid = whatToImproveIsValid;
 
         init();
 
@@ -167,8 +174,8 @@ angular.module('starter.controllers')
                 $cordovaGeolocation
                     .getCurrentPosition({maximumAge: 3000, timeout: 10000, enableHighAccuracy: true})
                     .then(centerMap, function(error) {
+                        $log.log(error);
                         $cordovaToast.showShortCenter(error);
-                        //alert(error);
                     })
                     .finally($ionicLoading.hide());
             });
@@ -207,12 +214,73 @@ angular.module('starter.controllers')
         }
 
         function closeRateStationModal(){
-            self.rateStationModal.hide();
+            self.rateStationModal.remove();
         }
 
         function openRateStationModal(){
             closeBottomSheet();
-            self.rateStationModal.show();
+
+
+            $ionicModal.fromTemplateUrl('templates/rate-station.html', {
+                scope: $scope,
+            }).then(function(modal) {
+                self.rateStationModal = modal;
+
+                self.newStationRating = {
+                    stationId: self.selectedStation.id,
+                    name: self.selectedStation.name,
+                    rating: 0,
+                    whatToImprove: null,
+                    comment: null
+                }
+
+                self.rateStationModal.show();
+            });
+
+
+
+        }
+
+        function submitStationRating(form) {
+
+            if (form.$valid) {
+
+
+                Auth.$requireAuth().then( function(user) {
+                    var postsRef = Ref.child("ratings").child(self.newStationRating.stationId);
+
+                    $ionicLoading.show({
+                        template: '<ion-spinner></ion-spinner><div>Enviando...</div>',
+                        noBackdrop: false
+                    });
+
+                    postsRef.push().set({
+                        user_uid: user.uid,
+                        rating: self.newStationRating.rating,
+                        time: Firebase.ServerValue.TIMESTAMP,
+                        what_to_improve: self.newStationRating.rating > 3 ? null : self.newStationRating.whatToImprove,
+                        comment: self.newStationRating.comment
+                    }, function(error) {
+
+                        $ionicLoading.hide();
+
+                        if (error) {
+                            $log.log(error);
+                            $cordovaToast.showShortCenter(error);
+                        } else {
+                            form.$setPristine();
+                            closeRateStationModal();
+                        }
+                    });
+                }, function() {
+                    closeRateStationModal();
+                    $cordovaToast.showShortCenter('Debes iniciar sesión');
+                });
+            }
+        }
+
+        function whatToImproveIsValid(value) {
+            return self.newStationRating.rating > 3 || (angular.isDefined(value) && !!value)
         }
 
         function init() {
@@ -241,19 +309,14 @@ angular.module('starter.controllers')
                 self.bottomSheetModal = modal;
             });
 
-            $ionicModal.fromTemplateUrl('templates/rate-station.html', {
-                scope: $scope,
-            }).then(function(modal) {
-                self.rateStationModal = modal;
-            });
-
             $ionicPlatform.ready(function() {
-               /* watchLocation = $cordovaGeolocation.watchPosition({maximumAge: 2000, timeout: 4000, enableHighAccuracy: true});
+                watchLocation = $cordovaGeolocation.watchPosition({maximumAge: 2000, timeout: 4000, enableHighAccuracy: true});
                 watchLocation.then(
                     null,
                     function(error) {
+                        $log.log(error);
                         $cordovaToast.showShortCenter(error);
-                        //alert(error);
+
                     },
                     function(position) {
                         // $scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
@@ -263,7 +326,7 @@ angular.module('starter.controllers')
 
                             self.myLocationMarker.options.visible = true;
                         });
-                    });*/
+                    });
             });
 
             mapWidgetsChannel.add('centerOnMyLocation', centerOnMyLocation);
@@ -299,4 +362,5 @@ angular.module('starter.controllers')
             self.displayStationMapActions = false;
         });
     });
+
 

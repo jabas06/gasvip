@@ -13,10 +13,11 @@
                     <div class="item item-divider">
                         <h3 class="title">{{vm.selectedStation.name}}</h3>
                     </div>
-                    <a class="item item-icon-left item-icon-right rating" ng-click="vm.openRateStationModal()">
+                    <a class="item item-icon-left item-icon-right rating" ng-click="vm.openRateStationModal()"
+                       ng-show="loggedIn">
                         <i class="icon ion-ios-star rated"></i>
                         <span class="badge badge-positive" ng-bind="vm.selectedStation.rating"></span>
-                        <i class="icon ion-arrow-right-c"></i>
+                        <i class="icon ion-android-arrow-forward"></i>
                     </a>
 
                 </div>

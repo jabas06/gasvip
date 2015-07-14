@@ -7,6 +7,7 @@
 // 'starter.controllers' is found in controllers.js
 angular.module('starter', [
     'ionic',
+    'ngMessages',
     'starter.controllers',
     'starter.services',
     'starter.directives',
@@ -14,6 +15,7 @@ angular.module('starter', [
     'firebase.ref',
     'firebase.auth',
     'uiGmapgoogle-maps',
+    'ui.validate',
     'ngCordova'
 ])
 

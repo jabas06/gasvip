@@ -1,32 +1,57 @@
 <ion-modal-view>
   <ion-header-bar align-title="left">
+    <button class="button button-icon icon ion-android-arrow-back" ng-click="vm.closeRateStationModal()"></button>
     <h3 class="title">Evalua esta estación</h3>
-    <button class="button button-icon icon ion-android-close" ng-click="vm.closeRateStationModal()"></button>
   </ion-header-bar>
   <ion-content>
-    <div class="text-center padding"><span ng-bind="vm.selectedStation.name" class="padding station-name"></span></div>
-    <form ng-submit="vm.rateStation()">
+    <div class="text-center padding"><span ng-bind="vm.newStationRating.name" class="padding station-name"></span></div>
+    <form name="rateForm" novalidate="" ng-submit="vm.submitStationRating(rateForm)">
       <div class="list">
         <div class="item text-center">
           <div>Valorar</div>
-          <rating ng-model="vb.selectedStation.rating"></rating>
+          <rating ng-model="vm.newStationRating.rating"></rating>
         </div>
-        <label class="item item-input item-select">
+
+        <label class="item item-input item-select"
+               ng-class="{ 'has-errors' : rateForm.whatToImprove.$invalid && rateForm.$submitted }"
+                ng-show="vm.newStationRating.rating > 0 && vm.newStationRating.rating < 4">
           <div class="input-label">
             ¿Qué podemos mejorar?
           </div>
-          <select>
-            <option value="" selected>--Elige una opción--</option> <!-- EMPTY VALUE ATTRIBUTE HERE -->
+          <select name="whatToImprove" ng-model="vm.newStationRating.whatToImprove"
+                  ui-validate=" 'vm.whatToImproveIsValid($value)' "
+                  ui-validate-watch=" 'vm.newStationRating.rating' ">
             <option value="price">Precio</option>
             <option value="customer_care">Atención</option>
           </select>
         </label>
-        <label class="item item-input">
-          <input type="text" placeholder="Deja un comentario">
+        <div class="error-container" ng-show="rateForm.whatToImprove.$invalid && rateForm.$submitted"
+             ng-messages="rateForm.whatToImprove.$error">
+          <div class="error" ng-message="validator">
+            <i class="ion-information-circled"></i>
+            Elije una opción
+          </div>
+        </div>
+
+        <label class="item item-input"
+               ng-class="{ 'has-errors' : rateForm.comment.$invalid && rateForm.$submitted }">
+          <input type="text" placeholder="Deja un comentario" name="comment" ng-model="vm.newStationRating.comment"
+                 maxlength="200">
         </label>
+        <div class="error-container last-error-container" ng-show="rateForm.comment.$invalid && rateForm.$submitted"
+             ng-messages="rateForm.comment.$error">
+          <div class="error" ng-message="maxlength">
+            <i class="ion-information-circled"></i>
+            Máximo 200 caracteres
+          </div>
+        </div>
       </div>
+
       <div class="padding">
-        <button class="button button-block button-positive">Enviar</button>
+        <button class="button button-block button-positive" type="submit"
+                ng-show="vm.newStationRating.rating > 0">
+          Enviar
+        </button>
       </div>
     </form>
   </ion-content>

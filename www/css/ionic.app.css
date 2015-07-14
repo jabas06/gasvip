@@ -7747,3 +7747,29 @@ a.button {
 
 .station-name {
   font-size: 32px; }
+
+.error-container {
+  margin: 5px 0; }
+
+.error-container:last-child {
+  margin: 5px 0 0; }
+
+.error {
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #555;
+  vertical-align: middle; }
+
+.error i {
+  font-size: 24px;
+  color: #ef473a;
+  vertical-align: middle; }
+
+.last-error-container > .error {
+  padding: 10px 16px 0; }
+
+.has-errors {
+  border-bottom: 3px solid #ef473a; }
+
+.no-errors {
+  border-bottom: 3px solid green; }
