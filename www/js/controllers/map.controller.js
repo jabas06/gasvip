@@ -1,7 +1,7 @@
 angular.module('starter.controllers')
-    .controller('MapCtrl', function($scope, $timeout, $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop
+    .controller('MapCtrl', function($scope, $timeout, $log, $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop
                                     , $cordovaGeolocation, $cordovaToast, Ref, GeofireRef
-                                    , mapWidgetsChannel, uiGmapIsReady, $log, Auth) {
+                                    , mapWidgetsChannel, uiGmapIsReady, uiGmapGoogleMapApi, Auth) {
         var self = this;
 
         var directionsService = null;
@@ -195,18 +195,29 @@ angular.module('starter.controllers')
                 directionsDisplay.setMap(instanceMap);
 
                 var directionsServiceRequest = {
-                    origin: self.myLocation.latitude.toString() + "," + self.myLocation.longitude.toString(),
-                    destination: self.selectedStation.latitude.toString() + "," + self.selectedStation.longitude.toString(),
+                    origin: self.myLocation.latitude.toString() + ',' + self.myLocation.longitude.toString(),
+                    destination: self.selectedStation.latitude.toString() + ',' + self.selectedStation.longitude.toString(),
                     travelMode: google.maps.TravelMode.DRIVING
                 };
 
                 directionsService.route(directionsServiceRequest, function(response, status) {
+
                     if (status == google.maps.DirectionsStatus.OK) {
                         directionsDisplay.setDirections(response);
                         self.bottomSheetModal.hide();
                     }
+                    else {
+                        console.log(status);
+                        console.log(response);
+                    }
+
+
                 });
-            });
+            }, function (error) {
+                    console.log(error);
+                    console.log('Instances: ' + uiGmapIsReady.instances());
+                }
+            );
         }
 
         function closeBottomSheet(){
@@ -284,20 +295,30 @@ angular.module('starter.controllers')
         }
 
         function init() {
+            console.log('Init Map Controller');
+            console.log(window.location.href);
+
+            uiGmapGoogleMapApi.then(function(maps) {
+
+            });
 
             $scope.$on('$ionicView.afterEnter', function(e) {
                 uiGmapIsReady.promise(1).then(function(instances) {
                     google.maps.event.trigger(instances[0].map, "resize");
-                });
+                }, function (error) {
+                        console.log(error);
+                        console.log('Instances: ' + uiGmapIsReady.instances());
+                    }
+                );
             });
 
             $scope.$on('$ionicView.beforeLeave', function(e) {
                closeBottomSheet();
             });
 
-            uiGmapIsReady.promise(1).then(function() {
+            uiGmapGoogleMapApi.then(function(maps) {
                 self.stationInfoWindow.options = {
-                    pixelOffset: new google.maps.Size(-1, -15, 'px', 'px')
+                    pixelOffset: new maps.Size(-1, -15, 'px', 'px')
                 };
             });
 
@@ -342,7 +363,7 @@ angular.module('starter.controllers')
             mapWidgetsChannel.invoke('centerOnMyLocation');
         };
     })
-    .controller('MapStationWidgetsCtrl', function($scope, mapWidgetsChannel, uiGmapIsReady) {
+    .controller('MapStationWidgetsCtrl', function($scope, mapWidgetsChannel) {
         var self = this;
 
         self.displayStationMapActions = false;
@@ -353,9 +374,6 @@ angular.module('starter.controllers')
 
         $scope.$on('bottom-sheet.shown', function(event) {
             self.displayStationMapActions = true;
-            uiGmapIsReady.promise(1).then(function(instances) {
-                google.maps.event.trigger(instances[0].map, "resize");
-            });
         });
 
         $scope.$on('bottom-sheet.hidden', function(event) {
