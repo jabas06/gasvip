@@ -130,31 +130,39 @@ angular.module('starter.controllers')
                     station.longitude = station.lon;
                     station.icon = 'img/gas.png'
                     station.name = station.name;
-                    station.rating = 4.5;
-                   /* station.onClick = function() {
-                        self.stationInfoWindow.templateParameter = station;
-                        self.stationInfoWindow.coords = { latitude: station.lat, longitude: station.lon }
-                        self.stationInfoWindow.show = true;
-                    };*/
-                    station.onClick = function(){
-                        /*station.icon = {
-                            path: 0, // 0 is equal to google.maps.SymbolPath.CIRCLE
-                            scale: 10,
-                            fillOpacity: 1,
-                            fillColor: '#387ef5', //'#11c1f3',
-                            strokeColor: 'white',
-                            strokeWeight: 2
-                        };*/
-                        self.selectedStation = station;
-                        self.bottomSheetModal.show();
-                        self.displayStationMapActions = true
-                    };
+                    station.ratingValue = station.rating ? station.rating.sum / station.rating.count : 0 ;
+                    station.onClick = stationMarkerClickClosure(station);
 
                     $timeout(function() {
                         stationMarkers.push(station);
                     });
                 }
             });
+        }
+
+        function stationMarkerClickClosure(station) {
+            return function() {
+                Ref.child("stations").child(station.id).once("value", function(dataSnapshot) {
+                    var freshStationInfo = dataSnapshot.val();
+                    /*station.icon = {
+                     path: 0, // 0 is equal to google.maps.SymbolPath.CIRCLE
+                     scale: 10,
+                     fillOpacity: 1,
+                     fillColor: '#387ef5', //'#11c1f3',
+                     strokeColor: 'white',
+                     strokeWeight: 2
+                     };*/
+                    station.ratingValue = freshStationInfo.rating ? freshStationInfo.rating.sum / freshStationInfo.rating.count : 0 ;
+
+                    self.selectedStation = station;
+                    self.bottomSheetModal.show();
+                    self.displayStationMapActions = true;
+                }, function (error) {
+                    $log.log(error);
+                    $cordovaToast.showShortCenter(error);
+                });
+
+            };
         }
 
         function markerWindowCloseClick()
@@ -214,8 +222,8 @@ angular.module('starter.controllers')
 
                 });
             }, function (error) {
-                    console.log(error);
-                    console.log('Instances: ' + uiGmapIsReady.instances());
+                    $log.log(error);
+                    $log.log('Instances: ' + uiGmapIsReady.instances());
                 }
             );
         }
@@ -248,41 +256,59 @@ angular.module('starter.controllers')
                 self.rateStationModal.show();
             });
 
-
-
         }
 
         function submitStationRating(form) {
 
             if (form.$valid) {
 
-
                 Auth.$requireAuth().then( function(user) {
-                    var postsRef = Ref.child("ratings").child(self.newStationRating.stationId);
 
                     $ionicLoading.show({
                         template: '<ion-spinner></ion-spinner><div>Enviando...</div>',
                         noBackdrop: false
                     });
 
-                    postsRef.push().set({
-                        user_uid: user.uid,
-                        rating: self.newStationRating.rating,
-                        time: Firebase.ServerValue.TIMESTAMP,
-                        what_to_improve: self.newStationRating.rating > 3 ? null : self.newStationRating.whatToImprove,
-                        comment: self.newStationRating.comment
-                    }, function(error) {
+                    var newRatingRef = Ref.child("ratings/" + self.newStationRating.stationId)
+                        .push({
+                            userId: user.uid,
+                            rating: self.newStationRating.rating,
+                            time: Firebase.ServerValue.TIMESTAMP,
+                            whatToImprove: self.newStationRating.rating > 3 ? null : self.newStationRating.whatToImprove,
+                            comment: self.newStationRating.comment
+                        }, function(error) {
 
-                        $ionicLoading.hide();
+                            $ionicLoading.hide();
 
-                        if (error) {
-                            $log.log(error);
-                            $cordovaToast.showShortCenter(error);
-                        } else {
-                            form.$setPristine();
-                            closeRateStationModal();
-                        }
-                    });
+                            if (error) {
+                                $log.log(error);
+                                $cordovaToast.showShortCenter(error);
+                            } else {
+
+                                Ref.child("stations/" + self.newStationRating.stationId + "/rating")
+                                    .transaction(function(currentRating) {
+
+                                        currentRating = currentRating || {};
+
+                                        currentRating.sum = (currentRating.sum || 0) + self.newStationRating.rating;
+                                        currentRating.count = (currentRating.count || 0) + 1;
+                                        currentRating.lastRatingId = newRatingRef.key();
+
+                                        return currentRating;
+                                    }
+                                    , function(error, committed, snapshot) {
+                                        if (error) {
+                                            $log.log('Transaction failed abnormally. ' + error);
+                                        } else if (!committed) {
+                                            $log.log('Transaction aborted.');
+                                        }
+
+                                        form.$setPristine();
+                                        closeRateStationModal();
+                                    }
+                                );
+                            }
+                        });
                 }, function() {
                     closeRateStationModal();
                     $cordovaToast.showShortCenter('Debes iniciar sesión');
