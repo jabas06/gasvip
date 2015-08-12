@@ -1,6 +1,6 @@
 angular.module('starter.controllers')
     .controller('MapCtrl', function($scope, $timeout, $log, $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop
-                                    , $cordovaGeolocation, $cordovaToast, Ref, GeofireRef
+                                    , $cordovaGeolocation, $cordovaToast, Ref, GeofireRef, catalogs
                                     , mapWidgetsChannel, uiGmapIsReady, uiGmapGoogleMapApi, Auth) {
         var self = this;
 
@@ -59,6 +59,8 @@ angular.module('starter.controllers')
             rating: 0
         };
 
+        self.improvementAreas = angular.copy(catalogs.improvementAreas);
+
         self.markerWindowCloseClick = markerWindowCloseClick;
         self.centerOnMyLocation = centerOnMyLocation;
         self.closeBottomSheet = closeBottomSheet;
@@ -114,7 +116,7 @@ angular.module('starter.controllers')
             stationsInQuery[stationId] = true;
 
             // Look up the station's data
-            Ref.child("stations").child(stationId).once("value", function(dataSnapshot) {
+            Ref.child('stations').child(stationId).once('value', function(dataSnapshot) {
 
                 var station = dataSnapshot.val();
 
@@ -142,7 +144,7 @@ angular.module('starter.controllers')
 
         function stationMarkerClickClosure(station) {
             return function() {
-                Ref.child("stations").child(station.id).once("value", function(dataSnapshot) {
+                Ref.child('stations').child(station.id).once('value', function(dataSnapshot) {
                     var freshStationInfo = dataSnapshot.val();
                     /*station.icon = {
                      path: 0, // 0 is equal to google.maps.SymbolPath.CIRCLE
@@ -269,7 +271,7 @@ angular.module('starter.controllers')
                         noBackdrop: false
                     });
 
-                    var newRatingRef = Ref.child("ratings/" + self.newStationRating.stationId)
+                    var newRatingRef = Ref.child('ratings/' + self.newStationRating.stationId)
                         .push({
                             userId: user.uid,
                             rating: self.newStationRating.rating,
@@ -285,7 +287,7 @@ angular.module('starter.controllers')
                                 $cordovaToast.showShortCenter(error);
                             } else {
 
-                                Ref.child("stations/" + self.newStationRating.stationId + "/rating")
+                                Ref.child('stations/' + self.newStationRating.stationId + '/rating')
                                     .transaction(function(currentRating) {
 
                                         currentRating = currentRating || {};

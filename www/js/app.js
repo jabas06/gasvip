@@ -11,6 +11,7 @@ angular.module('starter', [
     'starter.controllers',
     'starter.services',
     'starter.directives',
+    'starter.data',
     'firebase',
     'firebase.ref',
     'firebase.auth',
@@ -68,7 +69,7 @@ angular.module('starter', [
             .state('app', {
                 url: "/app",
                 abstract: true,
-                templateUrl: "templates/menu.html"
+                templateUrl: 'templates/menu.html'
             })
 
             .state('app.map', {
@@ -159,3 +160,4 @@ angular.module('starter', [
 angular.module('starter.controllers', []);
 angular.module('starter.services', []);
 angular.module('starter.directives', []);
+angular.module('starter.data', []);

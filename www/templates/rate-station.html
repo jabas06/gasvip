@@ -19,17 +19,16 @@
             ¿Qué podemos mejorar?
           </div>
           <select name="whatToImprove" ng-model="vm.newStationRating.whatToImprove"
+                  ng-options="improvement.name as improvement.description for improvement in vm.improvementAreas"
                   ui-validate=" 'vm.whatToImproveIsValid($value)' "
                   ui-validate-watch=" 'vm.newStationRating.rating' ">
-            <option value="price">Precio</option>
-            <option value="customer_care">Atención</option>
           </select>
         </label>
         <div class="error-container" ng-show="rateForm.whatToImprove.$invalid && rateForm.$submitted"
              ng-messages="rateForm.whatToImprove.$error">
           <div class="error" ng-message="validator">
             <i class="ion-information-circled"></i>
-            Elije una opción
+            Elija una opción
           </div>
         </div>
 
