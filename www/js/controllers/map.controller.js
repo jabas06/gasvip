@@ -130,9 +130,14 @@ angular.module('starter.controllers')
                     station.id = dataSnapshot.key();
                     station.latitude = station.lat;
                     station.longitude = station.lon;
-                    station.icon = 'img/gas.png'
                     station.name = station.name;
                     station.ratingValue = station.rating ? station.rating.sum / station.rating.count : 0 ;
+
+                    if (station.ratingValue > 3 )
+                        station.icon = 'img/gas-green.png'
+                    else
+                        station.icon = 'img/gas-gray.png'
+
                     station.onClick = stationMarkerClickClosure(station);
 
                     $timeout(function() {

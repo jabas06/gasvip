@@ -7723,7 +7723,6 @@ a.button {
 
 .modal.bottom-sheet {
   bottom: 0;
-  height: 100px;
   min-height: initial;
   top: initial;
   height: 30%;

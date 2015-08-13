@@ -16,7 +16,7 @@
                     <a class="item item-icon-left item-icon-right rating" ng-click="vm.openRateStationModal()"
                        ng-show="loggedIn">
                         <i class="icon ion-ios-star rated"></i>
-                        <span class="badge badge-positive" ng-bind="vm.selectedStation.ratingValue"></span>
+                        <span class="badge badge-positive" ng-bind="vm.selectedStation.ratingValue | number:1"></span>
                         <i class="icon ion-android-arrow-forward"></i>
                     </a>
 
