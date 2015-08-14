@@ -9,7 +9,7 @@ angular.module('starter.services')
 
         this.invoke = function (callBackName) {
           var args = arguments;
-          callbacks[callBackName].apply(undefined,args);
+          return callbacks[callBackName].apply(undefined,args);
         };
         return this;
       };

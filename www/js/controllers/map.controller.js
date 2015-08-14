@@ -44,7 +44,8 @@ angular.module('starter.controllers')
                     ]
                 }]
         };
-        self.selectedStation = {};
+        self.selectedStation = null;
+        self.nearestStation = null;
         self.stationMarkers = stationMarkers;
         self.stationInfoWindow = {
             coords: {},
@@ -110,19 +111,30 @@ angular.module('starter.controllers')
         }
 
         /* Adds new station markers to the map when they enter the query */
-        function onStationEntered(stationId, stationLocation)
-        {
+        function onStationEntered(id, location, distance) {
+
+            if(!(self.nearestStation) || distance < self.nearestStation.distance) {
+                self.nearestStation = {
+                    id: id,
+                    location: location,
+                    distance: distance
+                };
+            }
+
             // Specify that the station has entered this query
-            stationsInQuery[stationId] = true;
+            stationsInQuery[id] = {
+                location: location,
+                distance: distance
+            };
 
             // Look up the station's data
-            Ref.child('stations').child(stationId).once('value', function(dataSnapshot) {
+            Ref.child('stations').child(id).once('value', function(dataSnapshot) {
 
                 var station = dataSnapshot.val();
 
                 // If the station has not already exited this query in the time it took to look up its data in firebase
                 // Set, add it to the map
-                if (station !== null && stationsInQuery[dataSnapshot.key()] === true) {
+                if (station !== null && stationsInQuery[dataSnapshot.key()]) {
                     // Add the vehicle to the list of vehicles in the query
                     stationsInQuery[dataSnapshot.key()] = station;
 
@@ -385,6 +397,7 @@ angular.module('starter.controllers')
 
             mapWidgetsChannel.add('centerOnMyLocation', centerOnMyLocation);
             mapWidgetsChannel.add('calculateRoute', calculateRoute);
+            mapWidgetsChannel.add('getNearestStation', function(){ return self.nearestStation.id });
 
             centerOnMyLocation();
         }
@@ -399,10 +412,16 @@ angular.module('starter.controllers')
     .controller('MapStationWidgetsCtrl', function($scope, mapWidgetsChannel) {
         var self = this;
 
+        self.nearestStation = { id: "" };
+
         self.displayStationMapActions = false;
 
         self.calculateRoute = function (){
             mapWidgetsChannel.invoke('calculateRoute');
+        };
+
+        self.getNearestStation = function (){
+            self.nearestStation.id = mapWidgetsChannel.invoke('getNearestStation');
         };
 
         $scope.$on('bottom-sheet.shown', function(event) {
