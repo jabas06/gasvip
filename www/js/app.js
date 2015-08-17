@@ -154,10 +154,12 @@ angular.module('starter', [
         });
     }])
 
-    // used by route security
+    // used for route security
     .constant('SECURED_ROUTES', {})
     // lodash
-    .constant('_', window._);
+    .constant('_', window._)
+    // geofire
+    .constant('GeoFire', window.GeoFire);
 
 angular.module('starter.controllers', []);
 angular.module('starter.services', []);

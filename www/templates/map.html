@@ -13,9 +13,6 @@
                         ng-click="mapvm.calculateRoute()" ng-show="mapvm.displayStationMapActions">
                     Cómo llegar
                 </button>
-                <button class="button button-stable gmap-control" ng-click="mapvm.getNearestStation()" >
-                    {{mapvm.nearestStation.id}}
-                </button>
             </div>
         </script>
         <ui-gmap-google-map center='vm.map.center' zoom='vm.map.zoom' options='vm.mapOptions' pan="true">

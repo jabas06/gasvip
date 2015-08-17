@@ -1,6 +1,8 @@
 angular.module('starter.controllers')
-    .controller('MapCtrl', function($scope, $timeout, $log, $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop
-                                    , $cordovaGeolocation, $cordovaToast, Ref, GeofireRef, catalogs
+    .controller('MapCtrl', function($scope, $timeout, $log
+                                    , $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop, $ionicPopup
+                                    , $cordovaGeolocation, $cordovaToast
+                                    , Ref, GeofireRef, geoUtils, GeoFire, _, catalogs
                                     , mapWidgetsChannel, uiGmapIsReady, uiGmapGoogleMapApi, Auth) {
         var self = this;
 
@@ -33,7 +35,7 @@ angular.module('starter.controllers')
                 visible: false
             }
         };
-        self.map = { zoom: 16 };
+        self.map = { zoom: 14 };
         self.mapOptions = {
             disableDefaultUI: true,
             styles:  [{
@@ -100,6 +102,7 @@ angular.module('starter.controllers')
                     });
 
                     geoQuery.on("key_entered", onStationEntered);
+                    geoQuery.on("ready", onGeoQueryReady);
                 }
                 else {
                     geoQuery.updateCriteria({
@@ -111,51 +114,117 @@ angular.module('starter.controllers')
         }
 
         /* Adds new station markers to the map when they enter the query */
-        function onStationEntered(id, location, distance) {
-
-            if(!(self.nearestStation) || distance < self.nearestStation.distance) {
-                self.nearestStation = {
-                    id: id,
-                    location: location,
-                    distance: distance
-                };
-            }
-
-            // Specify that the station has entered this query
-            stationsInQuery[id] = {
-                location: location,
-                distance: distance
-            };
+        function onStationEntered(id) {
 
             // Look up the station's data
-            Ref.child('stations').child(id).once('value', function(dataSnapshot) {
+            Ref.child('stations').child(id).once('value', onStationDataLoaded);
+        }
 
-                var station = dataSnapshot.val();
+        function onStationDataLoaded (dataSnapshot) {
 
-                // If the station has not already exited this query in the time it took to look up its data in firebase
-                // Set, add it to the map
-                if (station !== null && stationsInQuery[dataSnapshot.key()]) {
-                    // Add the vehicle to the list of vehicles in the query
-                    stationsInQuery[dataSnapshot.key()] = station;
+            var station = dataSnapshot.val();
 
-                    // Create a new marker for the station
-                    station.id = dataSnapshot.key();
-                    station.latitude = station.lat;
-                    station.longitude = station.lon;
-                    station.name = station.name;
-                    station.ratingValue = station.rating ? station.rating.sum / station.rating.count : 0 ;
+            // If the station has not already exited this query in the time it took to look up its data in firebase
+            // Set, add it to the map
+            if (station !== null) {
+                // Add the station to the list of stations in the query
+                stationsInQuery[dataSnapshot.key()] = station;
 
-                    if (station.ratingValue > 3 )
-                        station.icon = 'img/gas-green.png'
-                    else
-                        station.icon = 'img/gas-gray.png'
+                // Create a new marker for the station
+                station.id = dataSnapshot.key();
+                station.latitude = station.lat;
+                station.longitude = station.lon;
+                station.name = station.name;
+                station.ratingValue = station.rating ? station.rating.sum / station.rating.count : 0 ;
 
-                    station.onClick = stationMarkerClickClosure(station);
+                if (station.ratingValue > 3 )
+                    station.icon = 'img/gas-green.png'
+                else
+                    station.icon = 'img/gas-gray.png'
 
-                    $timeout(function() {
-                        stationMarkers.push(station);
+                station.onClick = stationMarkerClickClosure(station);
+
+                $timeout(function() {
+                    stationMarkers.push(station);
+                });
+            }
+        }
+
+        function onGeoQueryReady() {
+
+            uiGmapIsReady.promise(1).then( function(instances) {
+
+                if (Object.keys(stationsInQuery).length > 0) {
+
+                    var nearestStations = _.chain(stationsInQuery)
+                        .sortBy(function (station) {
+                            return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude])
+                        })
+                        .take(3)
+                        .map(function (station) {
+                            return [station.latitude, station.longitude]
+                        })
+                        .value();
+
+                    var bounds = new google.maps.LatLngBounds();
+
+                    bounds.extend(new google.maps.LatLng(self.myLocation.latitude, self.myLocation.longitude));
+
+                    angular.forEach(nearestStations, function (item) {
+                        bounds.extend(new google.maps.LatLng(item[0], item[1]));
                     });
+
+                    instances[0].map.fitBounds(bounds);
                 }
+                else {
+                    // Display route to the nearest station outside the initial radius
+                    nearestStationRouteConfirmation()
+                }
+            });
+        }
+
+        function nearestStationRouteConfirmation() {
+
+            var confirmPopup = $ionicPopup.confirm({
+                title: '',
+                template: 'No hay estaciones cercanas. ¿Deseas ver la ruta a la estación más próxima?'
+            });
+            confirmPopup.then(function(res) {
+                if(res) {
+                    displayNearestStationRoute();
+                }
+            });
+        };
+
+        function displayNearestStationRoute() {
+            var myLocationGeohash = geoUtils.encodeGeohash([self.myLocation.latitude, self.myLocation.longitude]);
+
+            $ionicLoading.show({
+                template: '<ion-spinner></ion-spinner><div>Buscando</div>',
+                noBackdrop: false
+            });
+
+            Ref.child('geofire').orderByChild('g').startAt(myLocationGeohash).limitToFirst(1).once('child_added', function(dataSnapshot) {
+                var id = angular.toJson(dataSnapshot.val());
+                id = dataSnapshot.key();
+
+                $log.log('estacion mas cercana. ' + angular.toJson(dataSnapshot.val()) + "." + id);
+
+                // Look up the station's data
+                Ref.child('stations').child(id).once('value', onStationDataLoaded);
+
+                $timeout(function() {
+                    self.selectedStation = stationsInQuery[id];
+                    calculateRoute();
+
+                    $ionicLoading.hide();
+                }, 2000)
+
+            }, function (error) {
+                $ionicLoading.hide();
+
+                $log.log(error);
+                $cordovaToast.showShortCenter(error);
             });
         }
 
@@ -180,7 +249,6 @@ angular.module('starter.controllers')
                     $log.log(error);
                     $cordovaToast.showShortCenter(error);
                 });
-
             };
         }
 
@@ -257,7 +325,6 @@ angular.module('starter.controllers')
 
         function openRateStationModal(){
             closeBottomSheet();
-
 
             $ionicModal.fromTemplateUrl('templates/rate-station.html', {
                 scope: $scope,
@@ -397,7 +464,6 @@ angular.module('starter.controllers')
 
             mapWidgetsChannel.add('centerOnMyLocation', centerOnMyLocation);
             mapWidgetsChannel.add('calculateRoute', calculateRoute);
-            mapWidgetsChannel.add('getNearestStation', function(){ return self.nearestStation.id });
 
             centerOnMyLocation();
         }
