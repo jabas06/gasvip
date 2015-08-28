@@ -10,7 +10,7 @@ angular.module('starter.controllers')
         var directionsDisplay = null;
 
         // Query radius
-        var radiusInKm = 10;
+        var radiusInKm = 1;
         var geoQuery = null;
 
         // Keep track of all of the stations currently within the query
@@ -127,27 +127,86 @@ angular.module('starter.controllers')
             // If the station has not already exited this query in the time it took to look up its data in firebase
             // Set, add it to the map
             if (station !== null) {
+
+                var marker = new StationMarker(station, dataSnapshot.key());
+
                 // Add the station to the list of stations in the query
-                stationsInQuery[dataSnapshot.key()] = station;
-
-                // Create a new marker for the station
-                station.id = dataSnapshot.key();
-                station.latitude = station.lat;
-                station.longitude = station.lon;
-                station.name = station.name;
-                station.ratingValue = station.rating ? station.rating.sum / station.rating.count : 0 ;
-
-                if (station.ratingValue > 3 )
-                    station.icon = 'img/gas-green.png'
-                else
-                    station.icon = 'img/gas-gray.png'
-
-                station.onClick = stationMarkerClickClosure(station);
+                stationsInQuery[dataSnapshot.key()] = marker;
 
                 $timeout(function() {
-                    stationMarkers.push(station);
+                    stationMarkers.push(marker);
                 });
             }
+        }
+
+        function StationMarker(station, key){
+
+            var selfMarker = this;
+
+            selfMarker.id = key;
+            selfMarker.latitude = station.lat;
+            selfMarker.longitude = station.lon;
+            selfMarker.name = station.name;
+            selfMarker.rating = station.rating;
+            selfMarker.profeco = station.profeco;
+
+            this.onClick = stationMarkerClickClosure(selfMarker);
+
+            Object.defineProperty(selfMarker, 'icon', {
+                get: getIcon
+            });
+
+            Object.defineProperty(selfMarker, 'ratingValue', {
+                get: getRatingValue
+            });
+
+            // *********************************
+            // Internal
+            // *********************************
+
+            function getRatingValue() {
+                $log.log('Rating: ' + selfMarker.id);
+                var usersRating = selfMarker.rating ? selfMarker.rating.sum / selfMarker.rating.count : null;
+                var profecoScore = selfMarker.profeco ? 1 - (selfMarker.profeco.immobilizedPumps/selfMarker.profeco.gasolinePumps) : null;
+                var totalRating;
+
+                if (usersRating && profecoScore) {
+                    totalRating = ((5 * profecoScore) + usersRating) / 2;
+                }
+                else if (usersRating) {
+                    totalRating = usersRating;
+                }
+                else if (profecoScore) {
+                    totalRating = (5 * profecoScore);
+                }
+                else {
+                    totalRating = 0
+                }
+
+                return totalRating;
+            }
+
+            function getIcon() {
+                $log.log('Icon: ' + selfMarker.id);
+                return getRatingValue() >= 4 ? 'img/gas-green.png' : 'img/gas-gray.png';
+            }
+        }
+
+        function stationMarkerClickClosure(station) {
+            return function() {
+                Ref.child('stations').child(station.id).once('value', function(dataSnapshot) {
+                    var freshStationInfo = dataSnapshot.val();
+
+                    station.rating = freshStationInfo.rating;
+
+                    self.selectedStation = station;
+                    self.bottomSheetModal.show();
+                    self.displayStationMapActions = true;
+                }, function (error) {
+                    $log.log(error);
+                    $cordovaToast.showShortCenter(error);
+                });
+            };
         }
 
         function onGeoQueryReady() {
@@ -226,30 +285,6 @@ angular.module('starter.controllers')
                 $log.log(error);
                 $cordovaToast.showShortCenter(error);
             });
-        }
-
-        function stationMarkerClickClosure(station) {
-            return function() {
-                Ref.child('stations').child(station.id).once('value', function(dataSnapshot) {
-                    var freshStationInfo = dataSnapshot.val();
-                    /*station.icon = {
-                     path: 0, // 0 is equal to google.maps.SymbolPath.CIRCLE
-                     scale: 10,
-                     fillOpacity: 1,
-                     fillColor: '#387ef5', //'#11c1f3',
-                     strokeColor: 'white',
-                     strokeWeight: 2
-                     };*/
-                    station.ratingValue = freshStationInfo.rating ? freshStationInfo.rating.sum / freshStationInfo.rating.count : 0 ;
-
-                    self.selectedStation = station;
-                    self.bottomSheetModal.show();
-                    self.displayStationMapActions = true;
-                }, function (error) {
-                    $log.log(error);
-                    $cordovaToast.showShortCenter(error);
-                });
-            };
         }
 
         function markerWindowCloseClick()
@@ -383,14 +418,17 @@ angular.module('starter.controllers')
                                         return currentRating;
                                     }
                                     , function(error, committed, snapshot) {
-                                        if (error) {
-                                            $log.log('Transaction failed abnormally. ' + error);
-                                        } else if (!committed) {
-                                            $log.log('Transaction aborted.');
-                                        }
+                                        if (error || !committed) {
+                                            $log.log('Transaction failed. Committed: ' + committed + '. ' + error);
+                                            $cordovaToast.showShortCenter('Se produjo un error al envíar la evaluación');
 
-                                        form.$setPristine();
-                                        closeRateStationModal();
+                                        }
+                                        else {
+                                            stationsInQuery[self.newStationRating.stationId].rating = snapshot.val();
+
+                                            form.$setPristine();
+                                            closeRateStationModal();
+                                        }
                                     }
                                 );
                             }
