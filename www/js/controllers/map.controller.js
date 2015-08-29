@@ -116,6 +116,8 @@ angular.module('starter.controllers')
         /* Adds new station markers to the map when they enter the query */
         function onStationEntered(id) {
 
+            stationsInQuery[id] = true;
+
             // Look up the station's data
             Ref.child('stations').child(id).once('value', onStationDataLoaded);
         }
@@ -161,7 +163,8 @@ angular.module('starter.controllers')
 
             function refreshMarkerRating() {
                 selfMarker.ratingValue = getRatingValue();
-                selfMarker.icon = selfMarker.ratingValue >= 4 ? 'img/gas-green.png' : 'img/gas-gray.png';
+                selfMarker.icon = selfMarker.ratingValue >= 4 ? 'img/green-pin.png' : 'img/gray-pin.png';
+                selfMarker.image = selfMarker.ratingValue >= 4 ? 'img/green-station.png' : 'img/gray-station.png';
             }
 
             function getRatingValue() {
