@@ -10,7 +10,7 @@ angular.module('starter.controllers')
         var directionsDisplay = null;
 
         // Query radius
-        var radiusInKm = 1;
+        var radiusInKm = 10;
         var geoQuery = null;
 
         // Keep track of all of the stations currently within the query
@@ -150,19 +150,19 @@ angular.module('starter.controllers')
             selfMarker.rating = station.rating;
             selfMarker.profeco = station.profeco;
 
-            this.onClick = stationMarkerClickClosure(selfMarker);
+            selfMarker.onClick = stationMarkerClickClosure(selfMarker);
 
-            Object.defineProperty(selfMarker, 'icon', {
-                get: getIcon
-            });
+            selfMarker.refreshMarkerRating = refreshMarkerRating;
 
-            Object.defineProperty(selfMarker, 'ratingValue', {
-                get: getRatingValue
-            });
-
+            refreshMarkerRating();
             // *********************************
             // Internal
             // *********************************
+
+            function refreshMarkerRating() {
+                selfMarker.ratingValue = getRatingValue();
+                selfMarker.icon = selfMarker.ratingValue >= 4 ? 'img/gas-green.png' : 'img/gas-gray.png';
+            }
 
             function getRatingValue() {
                 $log.log('Rating: ' + selfMarker.id);
@@ -185,27 +185,24 @@ angular.module('starter.controllers')
 
                 return totalRating;
             }
-
-            function getIcon() {
-                $log.log('Icon: ' + selfMarker.id);
-                return getRatingValue() >= 4 ? 'img/gas-green.png' : 'img/gas-gray.png';
-            }
         }
 
         function stationMarkerClickClosure(station) {
             return function() {
-                Ref.child('stations').child(station.id).once('value', function(dataSnapshot) {
+                /*Ref.child('stations').child(station.id).once('value', function(dataSnapshot) {
                     var freshStationInfo = dataSnapshot.val();
 
-                    station.rating = freshStationInfo.rating;
+                    station.refreshMarkerRating();
 
-                    self.selectedStation = station;
-                    self.bottomSheetModal.show();
-                    self.displayStationMapActions = true;
+
                 }, function (error) {
                     $log.log(error);
                     $cordovaToast.showShortCenter(error);
-                });
+                });*/
+
+                self.selectedStation = station;
+                self.bottomSheetModal.show();
+                self.displayStationMapActions = true;
             };
         }
 
@@ -424,7 +421,8 @@ angular.module('starter.controllers')
 
                                         }
                                         else {
-                                            stationsInQuery[self.newStationRating.stationId].rating = snapshot.val();
+                                            stationsInQuery[self.newStationRating.stationId].rating = snapshot.val();                                                   
+                                            stationsInQuery[self.newStationRating.stationId].refreshMarkerRating();
 
                                             form.$setPristine();
                                             closeRateStationModal();
