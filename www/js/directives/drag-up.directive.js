@@ -9,5 +9,5 @@ angular.module('starter.directives')
                     $element.parent().addClass('slide-in-up');
                 }, $element);
             }
-        }
+        };
     });

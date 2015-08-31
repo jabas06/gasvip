@@ -9,9 +9,6 @@ angular.module('starter.controllers')
         // Internal
         // *********************************
 
-
-
-
         function oauthLogin(provider) {
             var options = {};
 
@@ -22,7 +19,7 @@ angular.module('starter.controllers')
 
             Auth.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError);
 
-        };
+        }
 
         function anonymousLogin() {
             self.err = null;

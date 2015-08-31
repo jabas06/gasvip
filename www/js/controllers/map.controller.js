@@ -1,9 +1,9 @@
 angular.module('starter.controllers')
-    .controller('MapCtrl', function($scope, $timeout, $log
-                                    , $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop, $ionicPopup
-                                    , $cordovaGeolocation, $cordovaToast
-                                    , Ref, GeofireRef, geoUtils, GeoFire, _, catalogs
-                                    , mapWidgetsChannel, uiGmapIsReady, uiGmapGoogleMapApi, Auth) {
+    .controller('MapCtrl', function($scope, $timeout, $log,
+                                    $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop, $ionicPopup,
+                                    $cordovaGeolocation, $cordovaToast,
+                                    Ref, GeofireRef, geoUtils, GeoFire, _, catalogs,
+                                    mapWidgetsChannel, uiGmapIsReady, uiGmapGoogleMapApi, Auth) {
         var self = this;
 
         var directionsService = null;
@@ -184,7 +184,7 @@ angular.module('starter.controllers')
                     totalRating = (5 * profecoScore);
                 }
                 else {
-                    totalRating = 0
+                    totalRating = 0;
                 }
 
                 return totalRating;
@@ -221,7 +221,7 @@ angular.module('starter.controllers')
                         var nearestStations = _.chain(stationsInQuery)
                             .sortBy(function (station) {
                                 try {
-                                    return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude])
+                                    return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude]);
                                 }
                                 catch(err) {
 
@@ -232,7 +232,7 @@ angular.module('starter.controllers')
                             })
                             .take(3)
                             .map(function (station) {
-                                return [station.latitude, station.longitude]
+                                return [station.latitude, station.longitude];
                             })
                             .value();
 
@@ -249,7 +249,7 @@ angular.module('starter.controllers')
                     else {
                         var nearestStation = _.chain(stationsInQuery)
                             .sortBy(function (station) {
-                                return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude])
+                                return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude]);
                             })
                             .take(1).value();
                         self.selectedStation = nearestStation[0];
@@ -285,7 +285,7 @@ angular.module('starter.controllers')
                     findNearestStation();
                 }
             });
-        };
+        }
 
         function findNearestStation() {
 
@@ -394,7 +394,7 @@ angular.module('starter.controllers')
                     rating: 0,
                     whatToImprove: null,
                     comment: null
-                }
+                };
 
                 self.rateStationModal.show();
             });
@@ -438,8 +438,7 @@ angular.module('starter.controllers')
                                         currentRating.lastRatingId = newRatingRef.key();
 
                                         return currentRating;
-                                    }
-                                    , function(error, committed, snapshot) {
+                                    }, function(error, committed, snapshot) {
                                         if (error || !committed) {
                                             $log.log('Transaction failed. Committed: ' + committed + '. ' + error);
                                             $cordovaToast.showShortCenter('Se produjo un error al envíar la evaluación');
@@ -464,7 +463,7 @@ angular.module('starter.controllers')
         }
 
         function whatToImproveIsValid(value) {
-            return self.newStationRating.rating > 3 || (angular.isDefined(value) && !!value)
+            return self.newStationRating.rating > 3 || (angular.isDefined(value) && !!value);
         }
 
         function init() {

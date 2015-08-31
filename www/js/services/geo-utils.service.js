@@ -11,6 +11,7 @@ angular.module('starter.services')
         var service = {
             encodeGeohash: encodeGeohash
         };
+
         return service;
 
         ////////////
@@ -85,7 +86,7 @@ angular.module('starter.services')
             }
 
             return hash;
-        };
+        }
 
         /**
          * Validates the inputted location and throws an error if it is invalid.
@@ -122,6 +123,6 @@ angular.module('starter.services')
             if (typeof error !== "undefined") {
                 throw new Error("Invalid GeoFire location '" + location + "': " + error);
             }
-        };
+        }
 
     });

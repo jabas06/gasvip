@@ -6,4 +6,4 @@ angular.module('firebase.ref', ['firebase', 'firebase.config'])
     .factory('GeofireRef', ['$window', 'Ref', function($window, Ref) {
       'use strict';
       return new $window.GeoFire(Ref.child('geofire'));
-    }]);;
+    }]);

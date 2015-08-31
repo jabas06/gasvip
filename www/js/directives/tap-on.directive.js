@@ -14,5 +14,5 @@ angular.module('starter.directives')
                     $element.parent('#wrapper').find("nav").removeClass('slide-in-up');
                 }, $element);
             }
-        }
+        };
     });
