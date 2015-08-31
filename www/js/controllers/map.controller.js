@@ -383,7 +383,7 @@ angular.module('starter.controllers')
         function openRateStationModal(){
             closeBottomSheet();
 
-            $ionicModal.fromTemplateUrl('templates/rate-station.html', {
+            $ionicModal.fromTemplateUrl('rate-station.html', {
                 scope: $scope,
             }).then(function(modal) {
                 self.rateStationModal = modal;
@@ -494,7 +494,7 @@ angular.module('starter.controllers')
                 };
             });
 
-            $ionicModal.fromTemplateUrl('templates/map-bottom-sheet.html', {
+            $ionicModal.fromTemplateUrl('map-bottom-sheet.html', {
                 scope: $scope,
                 viewType: 'bottom-sheet',
                 animation: 'slide-in-up'

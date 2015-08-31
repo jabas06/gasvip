@@ -13,7 +13,7 @@ var useref = require('gulp-useref');
 var paths = {
   sass: ['./scss/**/*.scss'],
   templatecache: ['./www/templates/**/*.html'],
-  ng_annotate: ['./www/js/*.js'],
+  ng_annotate: ['./www/js/**/*.js'],
   useref: ['./www/*.html']
 };
 
