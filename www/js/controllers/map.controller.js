@@ -19,6 +19,8 @@ angular.module('starter.controllers')
 
         var watchLocation;
 
+        var findingNearestStation = false;
+
         self.myLocation = {};
         self.myLocationMarker = {
             id: '1',
@@ -114,9 +116,9 @@ angular.module('starter.controllers')
         }
 
         /* Adds new station markers to the map when they enter the query */
-        function onStationEntered(id) {
+        function onStationEntered(id, location) {
 
-            stationsInQuery[id] = true;
+            stationsInQuery[id] = { latitude: location[0], longitude: location[1]};
 
             // Look up the station's data
             Ref.child('stations').child(id).once('value', onStationDataLoaded);
@@ -168,7 +170,6 @@ angular.module('starter.controllers')
             }
 
             function getRatingValue() {
-                $log.log('Rating: ' + selfMarker.id);
                 var usersRating = selfMarker.rating ? selfMarker.rating.sum / selfMarker.rating.count : null;
                 var profecoScore = selfMarker.profeco ? 1 - (selfMarker.profeco.immobilizedPumps/selfMarker.profeco.gasolinePumps) : null;
                 var totalRating;
@@ -215,29 +216,60 @@ angular.module('starter.controllers')
 
                 if (Object.keys(stationsInQuery).length > 0) {
 
-                    var nearestStations = _.chain(stationsInQuery)
-                        .sortBy(function (station) {
-                            return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude])
-                        })
-                        .take(3)
-                        .map(function (station) {
-                            return [station.latitude, station.longitude]
-                        })
-                        .value();
+                    if (findingNearestStation === false) {
 
-                    var bounds = new google.maps.LatLngBounds();
+                        var nearestStations = _.chain(stationsInQuery)
+                            .sortBy(function (station) {
+                                try {
+                                    return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude])
+                                }
+                                catch(err) {
 
-                    bounds.extend(new google.maps.LatLng(self.myLocation.latitude, self.myLocation.longitude));
+                                    $log.log([station.latitude + ',' + station.longitude]);
 
-                    angular.forEach(nearestStations, function (item) {
-                        bounds.extend(new google.maps.LatLng(item[0], item[1]));
-                    });
+                                    return 1000;
+                                }
+                            })
+                            .take(3)
+                            .map(function (station) {
+                                return [station.latitude, station.longitude]
+                            })
+                            .value();
 
-                    instances[0].map.fitBounds(bounds);
+                        var bounds = new google.maps.LatLngBounds();
+
+                        bounds.extend(new google.maps.LatLng(self.myLocation.latitude, self.myLocation.longitude));
+
+                        angular.forEach(nearestStations, function (item) {
+                            bounds.extend(new google.maps.LatLng(item[0], item[1]));
+                        });
+
+                        instances[0].map.fitBounds(bounds);
+                    }
+                    else {
+                        var nearestStation = _.chain(stationsInQuery)
+                            .sortBy(function (station) {
+                                return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude])
+                            })
+                            .take(1).value();
+                        self.selectedStation = nearestStation[0];
+                        calculateRoute();
+
+                        alert(nearestStation.length);
+
+                        $ionicLoading.hide();
+
+                        findingNearestStation = false;
+                    }
                 }
                 else {
-                    // Display route to the nearest station outside the initial radius
-                    nearestStationRouteConfirmation()
+                    if (findingNearestStation === false) {
+                        // Display route to the nearest station outside the initial radius
+                        nearestStationRouteConfirmation();
+                    }
+                    else {
+                        findNearestStation();
+                    }
                 }
             });
         }
@@ -250,41 +282,31 @@ angular.module('starter.controllers')
             });
             confirmPopup.then(function(res) {
                 if(res) {
-                    displayNearestStationRoute();
+                    findNearestStation();
                 }
             });
         };
 
-        function displayNearestStationRoute() {
-            var myLocationGeohash = geoUtils.encodeGeohash([self.myLocation.latitude, self.myLocation.longitude]);
+        function findNearestStation() {
 
-            $ionicLoading.show({
-                template: '<ion-spinner></ion-spinner><div>Buscando</div>',
-                noBackdrop: false
+
+            if (findingNearestStation === false) {
+                $ionicLoading.show({
+                    template: '<ion-spinner></ion-spinner><div>Buscando</div>',
+                    noBackdrop: false
+                });
+            }
+
+            findingNearestStation = true;
+
+            var currentRadius = geoQuery.radius();
+
+            geoQuery.updateCriteria({
+                center: [self.myLocation.latitude, self.myLocation.longitude],
+                radius: currentRadius + 10
             });
 
-            Ref.child('geofire').orderByChild('g').startAt(myLocationGeohash).limitToFirst(1).once('child_added', function(dataSnapshot) {
-                var id = angular.toJson(dataSnapshot.val());
-                id = dataSnapshot.key();
 
-                $log.log('estacion mas cercana. ' + angular.toJson(dataSnapshot.val()) + "." + id);
-
-                // Look up the station's data
-                Ref.child('stations').child(id).once('value', onStationDataLoaded);
-
-                $timeout(function() {
-                    self.selectedStation = stationsInQuery[id];
-                    calculateRoute();
-
-                    $ionicLoading.hide();
-                }, 2000)
-
-            }, function (error) {
-                $ionicLoading.hide();
-
-                $log.log(error);
-                $cordovaToast.showShortCenter(error);
-            });
         }
 
         function markerWindowCloseClick()
