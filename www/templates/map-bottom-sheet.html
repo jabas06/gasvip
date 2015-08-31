@@ -5,10 +5,10 @@
     </ion-header-bar>
     <ion-content>
         <div class="row">
-            <div class="col col-20 aligner aligner-center-content">
+            <div class="col col-25 aligner aligner-center-content">
                 <img ng-s ng-src="{{vm.selectedStation.image}}" class="aligner-item"/>
             </div>
-            <div class="col col-80">
+            <div class="col col-75">
                 <div class="list">
                     <div class="item item-divider">
                         <h3 class="title">{{vm.selectedStation.name}}</h3>
@@ -19,7 +19,10 @@
                         <span class="badge badge-positive" ng-bind="vm.selectedStation.ratingValue | number:1"></span>
                         <i class="icon ion-android-arrow-forward"></i>
                     </a>
-
+                    <a class="item  item-icon-right" ng-click="vm.calculateRoute()">
+                        Cómo llegar
+                        <i class="icon ion-android-navigate"></i>
+                    </a>
                 </div>
 
             </div>

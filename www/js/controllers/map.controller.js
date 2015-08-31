@@ -51,12 +51,7 @@ angular.module('starter.controllers')
         self.selectedStation = null;
         self.nearestStation = null;
         self.stationMarkers = stationMarkers;
-        self.stationInfoWindow = {
-            coords: {},
-            show: false,
-            templateParameter: {},
-            templateUrl: 'station-info-window.html',
-        };
+
         self.bottomSheetModal = null;
         self.rateStationModal = null;
 
@@ -66,11 +61,12 @@ angular.module('starter.controllers')
 
         self.improvementAreas = angular.copy(catalogs.improvementAreas);
 
-        self.markerWindowCloseClick = markerWindowCloseClick;
         self.centerOnMyLocation = centerOnMyLocation;
         self.closeBottomSheet = closeBottomSheet;
         self.closeRateStationModal = closeRateStationModal;
         self.openRateStationModal = openRateStationModal;
+
+        self.calculateRoute = calculateRoute;
 
         self.displayStationMapActions = false;
 
@@ -140,6 +136,10 @@ angular.module('starter.controllers')
                 $timeout(function() {
                     stationMarkers.push(marker);
                 });
+
+                if(marker.ratingValue >= 4) {
+                    $scope.$broadcast('green-station-entered');
+                }
             }
         }
 
@@ -255,8 +255,6 @@ angular.module('starter.controllers')
                         self.selectedStation = nearestStation[0];
                         calculateRoute();
 
-                        alert(nearestStation.length);
-
                         $ionicLoading.hide();
 
                         findingNearestStation = false;
@@ -307,11 +305,6 @@ angular.module('starter.controllers')
             });
 
 
-        }
-
-        function markerWindowCloseClick()
-        {
-            self.stationInfoWindow.show = false;
         }
 
         function centerOnMyLocation()
@@ -370,6 +363,23 @@ angular.module('starter.controllers')
                     $log.log('Instances: ' + uiGmapIsReady.instances());
                 }
             );
+        }
+
+        function nearestGreenStationRoute() {
+
+            var greenStation = _.chain(stationsInQuery)
+                .filter(function (station) {
+                    return station.ratingValue >= 4;
+                })
+                .sortBy(function (station) {
+                    return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude]);
+                })
+                .first().value();
+
+            self.selectedStation = greenStation;
+            calculateRoute();
+
+            $ionicLoading.hide();
         }
 
         function closeBottomSheet(){
@@ -488,12 +498,6 @@ angular.module('starter.controllers')
                closeBottomSheet();
             });
 
-            uiGmapGoogleMapApi.then(function(maps) {
-                self.stationInfoWindow.options = {
-                    pixelOffset: new maps.Size(-1, -15, 'px', 'px')
-                };
-            });
-
             $ionicModal.fromTemplateUrl('map-bottom-sheet.html', {
                 scope: $scope,
                 viewType: 'bottom-sheet',
@@ -524,6 +528,7 @@ angular.module('starter.controllers')
 
             mapWidgetsChannel.add('centerOnMyLocation', centerOnMyLocation);
             mapWidgetsChannel.add('calculateRoute', calculateRoute);
+            mapWidgetsChannel.add('nearestGreenStationRoute', nearestGreenStationRoute);
 
             centerOnMyLocation();
         }
@@ -541,13 +546,14 @@ angular.module('starter.controllers')
         self.nearestStation = { id: "" };
 
         self.displayStationMapActions = false;
+        self.showNearestGreenStationAction = false;
 
         self.calculateRoute = function (){
             mapWidgetsChannel.invoke('calculateRoute');
         };
 
-        self.getNearestStation = function (){
-            self.nearestStation.id = mapWidgetsChannel.invoke('getNearestStation');
+        self.nearestGreenStationRoute = function (){
+            mapWidgetsChannel.invoke('nearestGreenStationRoute');
         };
 
         $scope.$on('bottom-sheet.shown', function(event) {
@@ -556,6 +562,10 @@ angular.module('starter.controllers')
 
         $scope.$on('bottom-sheet.hidden', function(event) {
             self.displayStationMapActions = false;
+        });
+
+        $scope.$on('green-station-entered', function(event) {
+            self.showNearestGreenStationAction = true;
         });
     });
 
