@@ -3,6 +3,9 @@
   "app_id": "07c4a834",
   "gulpStartupTasks": [
     "sass",
+    "templatecache",
+    "ng_annotate",
+    "useref",
     "watch"
   ],
   "watchPatterns": [

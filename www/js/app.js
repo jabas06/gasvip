@@ -8,6 +8,7 @@
 angular.module('starter', [
     'ionic',
     'ngMessages',
+    'templates',
     'starter.controllers',
     'starter.services',
     'starter.directives',
@@ -69,14 +70,14 @@ angular.module('starter', [
             .state('app', {
                 url: "/app",
                 abstract: true,
-                templateUrl: 'templates/menu.html'
+                templateUrl: 'menu.html'
             })
 
             .state('app.map', {
                 url: '/map',
                 views: {
                     'menuContent': {
-                        templateUrl: 'templates/map.html',
+                        templateUrl: 'map.html',
                         controller: 'MapCtrl as vm'
                     }
                 }
@@ -86,7 +87,7 @@ angular.module('starter', [
                 url: '/login',
                 views: {
                     'menuContent': {
-                        templateUrl: 'templates/login.html',
+                        templateUrl: 'login.html',
                         controller: 'LoginCtrl as vm'
                     }
                 }
@@ -96,7 +97,7 @@ angular.module('starter', [
                 url: '/account',
                 views: {
                     'menuContent': {
-                        templateUrl: 'templates/account.html',
+                        templateUrl: 'account.html',
                         controller: 'AccountCtrl'
                     }
                 }

@@ -55,7 +55,7 @@ angular.module('starter.controllers')
             coords: {},
             show: false,
             templateParameter: {},
-            templateUrl: 'templates/partials/station-info-window.html',
+            templateUrl: 'station-info-window.html',
         };
         self.bottomSheetModal = null;
         self.rateStationModal = null;
