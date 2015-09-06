@@ -14,7 +14,7 @@ var paths = {
   sass: ['./scss/**/*.scss'],
   templatecache: ['./www/templates/**/*.html'],
   ng_annotate: ['./www/js/**/*.js'],
-  useref: ['./www/*.html']
+  useref: ['./www/*.html', './www/js/**/*.js']
 };
 
 gulp.task('default', ['sass', 'templatecache', 'ng_annotate', 'useref']);

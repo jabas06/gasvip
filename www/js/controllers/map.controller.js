@@ -1,7 +1,7 @@
 angular.module('starter.controllers')
-    .controller('MapCtrl', function($scope, $timeout, $log,
+    .controller('MapCtrl', function($scope, $timeout, $log, $window,
                                     $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop, $ionicPopup,
-                                    $cordovaGeolocation, $cordovaToast,
+                                    $cordovaGeolocation, $cordovaToast, StationMarker,
                                     Ref, GeofireRef, geoUtils, GeoFire, _, catalogs,
                                     mapWidgetsChannel, uiGmapIsReady, uiGmapGoogleMapApi, Auth) {
         var self = this;
@@ -17,9 +17,13 @@ angular.module('starter.controllers')
         var stationsInQuery = {};
         var stationMarkers = [];
 
-        var watchLocation;
+        var watchLocation = null;
 
         var findingNearestStation = false;
+        var navigating = false;
+        var startingView = true;
+
+        var geolocationOptions = { maximumAge: 2000, timeout: 4000 };
 
         self.myLocation = {};
         self.myLocationMarker = {
@@ -37,7 +41,15 @@ angular.module('starter.controllers')
                 visible: false
             }
         };
-        self.map = { zoom: 14 };
+
+        self.map = {
+            zoom: 7,
+            center: {
+                latitude: 19.448155,
+                longitude: -99.134184
+            }
+        };
+
         self.mapOptions = {
             disableDefaultUI: true,
             styles:  [{
@@ -61,7 +73,6 @@ angular.module('starter.controllers')
 
         self.improvementAreas = angular.copy(catalogs.improvementAreas);
 
-        self.centerOnMyLocation = centerOnMyLocation;
         self.closeBottomSheet = closeBottomSheet;
         self.closeRateStationModal = closeRateStationModal;
         self.openRateStationModal = openRateStationModal;
@@ -79,36 +90,59 @@ angular.module('starter.controllers')
         // Internal
         // *********************************
 
-        function centerMap (position) {
+        function centerMap () {
 
-            // $scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
-            $timeout(function() {
-                self.myLocation.latitude = position.coords.latitude;
-                self.myLocation.longitude = position.coords.longitude;
+            if (self.myLocation.latitude && self.myLocation.longitude) {
 
-                self.map.center = {
+                self.map = {
+                    center: {
                         latitude: self.myLocation.latitude,
                         longitude: self.myLocation.longitude
+                    }
                 };
 
+                if (Object.keys(stationsInQuery).length > 0) {
+                    fitBoundsToNearestStations();
+                }
+                else
+                {
+                    self.map.zoom = 16;
+                }
+
                 self.myLocationMarker.options.visible = true;
+            }
+            else {
+                if (watchLocation !== null) {
 
-                if (!geoQuery) {
-                    geoQuery = GeofireRef.query({
-                        center: [self.myLocation.latitude, self.myLocation.longitude],
-                        radius: radiusInKm
-                    });
+                    $log.log(angular.toJson(watchLocation));
+                    $log.log('clearWatch2 -->' + angular.toJson($cordovaGeolocation.clearWatch));
 
-                    geoQuery.on("key_entered", onStationEntered);
-                    geoQuery.on("ready", onGeoQueryReady);
+                    $cordovaGeolocation.clearWatch(watchLocation.watchID);
+                    startWatchLocation();
                 }
-                else {
-                    geoQuery.updateCriteria({
-                        center: [self.myLocation.latitude, self.myLocation.longitude],
-                        radius: radiusInKm
-                    });
-                }
-            });
+            }
+        }
+
+        function retrieveStations (latitude, longitude, radiusKm) {
+            if (!geoQuery) {
+                geoQuery = GeofireRef.query({
+                    center: [latitude, longitude],
+                    radius: radiusInKm
+                });
+
+                geoQuery.on("key_entered", onStationEntered);
+                geoQuery.on("ready", onGeoQueryReady);
+            }
+            // Only reload stations if the previous location is 1 km from the current location
+            // or if there are no station on the map
+            else if (Object.keys(stationsInQuery).length === 0 ||
+                GeoFire.distance(geoQuery.center(), [latitude, longitude]) > 1) {
+
+                geoQuery.updateCriteria({
+                    center: [latitude, longitude],
+                    radius: radiusKm
+                });
+            }
         }
 
         /* Adds new station markers to the map when they enter the query */
@@ -128,7 +162,7 @@ angular.module('starter.controllers')
             // Set, add it to the map
             if (station !== null) {
 
-                var marker = new StationMarker(station, dataSnapshot.key());
+                var marker = new StationMarker(station, dataSnapshot.key(), stationMarkerClickClosure);
 
                 // Add the station to the list of stations in the query
                 stationsInQuery[dataSnapshot.key()] = marker;
@@ -143,68 +177,9 @@ angular.module('starter.controllers')
             }
         }
 
-        function StationMarker(station, key){
-
-            var selfMarker = this;
-
-            selfMarker.id = key;
-            selfMarker.latitude = station.lat;
-            selfMarker.longitude = station.lon;
-            selfMarker.name = station.name;
-            selfMarker.rating = station.rating;
-            selfMarker.profeco = station.profeco;
-
-            selfMarker.onClick = stationMarkerClickClosure(selfMarker);
-
-            selfMarker.refreshMarkerRating = refreshMarkerRating;
-
-            refreshMarkerRating();
-            // *********************************
-            // Internal
-            // *********************************
-
-            function refreshMarkerRating() {
-                selfMarker.ratingValue = getRatingValue();
-                selfMarker.icon = selfMarker.ratingValue >= 4 ? 'img/green-pin.png' : 'img/gray-pin.png';
-                selfMarker.image = selfMarker.ratingValue >= 4 ? 'img/green-station.png' : 'img/gray-station.png';
-            }
-
-            function getRatingValue() {
-                var usersRating = selfMarker.rating ? selfMarker.rating.sum / selfMarker.rating.count : null;
-                var profecoScore = selfMarker.profeco ? 1 - (selfMarker.profeco.immobilizedPumps/selfMarker.profeco.gasolinePumps) : null;
-                var totalRating;
-
-                if (usersRating && profecoScore) {
-                    totalRating = ((5 * profecoScore) + usersRating) / 2;
-                }
-                else if (usersRating) {
-                    totalRating = usersRating;
-                }
-                else if (profecoScore) {
-                    totalRating = (5 * profecoScore);
-                }
-                else {
-                    totalRating = 0;
-                }
-
-                return totalRating;
-            }
-        }
-
-        function stationMarkerClickClosure(station) {
+        function stationMarkerClickClosure(stationMarker) {
             return function() {
-                /*Ref.child('stations').child(station.id).once('value', function(dataSnapshot) {
-                    var freshStationInfo = dataSnapshot.val();
-
-                    station.refreshMarkerRating();
-
-
-                }, function (error) {
-                    $log.log(error);
-                    $cordovaToast.showShortCenter(error);
-                });*/
-
-                self.selectedStation = station;
+                self.selectedStation = stationMarker;
                 self.bottomSheetModal.show();
                 self.displayStationMapActions = true;
             };
@@ -212,63 +187,59 @@ angular.module('starter.controllers')
 
         function onGeoQueryReady() {
 
-            uiGmapIsReady.promise(1).then( function(instances) {
+            if (Object.keys(stationsInQuery).length > 0) {
 
-                if (Object.keys(stationsInQuery).length > 0) {
+                if (findingNearestStation === false && navigating === false) {
 
-                    if (findingNearestStation === false) {
-
-                        var nearestStations = _.chain(stationsInQuery)
-                            .sortBy(function (station) {
-                                try {
-                                    return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude]);
-                                }
-                                catch(err) {
-
-                                    $log.log([station.latitude + ',' + station.longitude]);
-
-                                    return 1000;
-                                }
-                            })
-                            .take(3)
-                            .map(function (station) {
-                                return [station.latitude, station.longitude];
-                            })
-                            .value();
-
-                        var bounds = new google.maps.LatLngBounds();
-
-                        bounds.extend(new google.maps.LatLng(self.myLocation.latitude, self.myLocation.longitude));
-
-                        angular.forEach(nearestStations, function (item) {
-                            bounds.extend(new google.maps.LatLng(item[0], item[1]));
-                        });
-
-                        instances[0].map.fitBounds(bounds);
-                    }
-                    else {
-                        var nearestStation = _.chain(stationsInQuery)
-                            .sortBy(function (station) {
-                                return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude]);
-                            })
-                            .take(1).value();
-                        self.selectedStation = nearestStation[0];
-                        calculateRoute();
-
-                        $ionicLoading.hide();
-
-                        findingNearestStation = false;
-                    }
+                   fitBoundsToNearestStations();
                 }
                 else {
-                    if (findingNearestStation === false) {
-                        // Display route to the nearest station outside the initial radius
-                        nearestStationRouteConfirmation();
-                    }
-                    else {
-                        findNearestStation();
-                    }
+                    var nearestStation = _.chain(stationsInQuery)
+                        .sortBy(function (station) {
+                            return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude]);
+                        })
+                        .first(1).value();
+                    self.selectedStation = nearestStation;
+                    calculateRoute();
+
+                    findingNearestStation = false;
+
+                    $ionicLoading.hide();
                 }
+            }
+            else {
+                if (findingNearestStation === false) {
+                    // Display route to the nearest station outside the initial radius
+                    nearestStationRouteConfirmation();
+                }
+                else {
+                    findNearestStation();
+                }
+            }
+
+        }
+
+        function fitBoundsToNearestStations() {
+            uiGmapIsReady.promise(1).then( function(instances) {
+                var nearestStations = _.chain(stationsInQuery)
+                    .sortBy(function (station) {
+                        return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude]);
+                    })
+                    .take(3)
+                    .map(function (station) {
+                        return [station.latitude, station.longitude];
+                    })
+                    .value();
+
+                var bounds = new google.maps.LatLngBounds();
+
+                bounds.extend(new google.maps.LatLng(self.myLocation.latitude, self.myLocation.longitude));
+
+                angular.forEach(nearestStations, function (item) {
+                    bounds.extend(new google.maps.LatLng(item[0], item[1]));
+                });
+
+                instances[0].map.fitBounds(bounds);
             });
         }
 
@@ -287,7 +258,6 @@ angular.module('starter.controllers')
 
         function findNearestStation() {
 
-
             if (findingNearestStation === false) {
                 $ionicLoading.show({
                     template: '<ion-spinner></ion-spinner><div>Buscando</div>',
@@ -304,31 +274,11 @@ angular.module('starter.controllers')
                 radius: currentRadius + 10
             });
 
-
-        }
-
-        function centerOnMyLocation()
-        {
-            $ionicLoading.show({
-                template: '<ion-spinner></ion-spinner><div>Obteniendo ubicación</div>',
-                noBackdrop: false
-            });
-
-            $ionicPlatform.ready(function() {
-
-                $cordovaGeolocation
-                    .getCurrentPosition({maximumAge: 3000, timeout: 10000, enableHighAccuracy: true})
-                    .then(centerMap, function(error) {
-                        $log.log(error);
-                        $cordovaToast.showShortCenter(error);
-                    })
-                    .finally($ionicLoading.hide());
-            });
         }
 
         function calculateRoute() {
             uiGmapIsReady.promise(1).then( function(instances) {
-                console.log('uiGmapIsReady');
+
                 if (!directionsService)
                     directionsService = new google.maps.DirectionsService();
 
@@ -350,15 +300,34 @@ angular.module('starter.controllers')
                     if (status == google.maps.DirectionsStatus.OK) {
                         directionsDisplay.setDirections(response);
                         self.bottomSheetModal.hide();
+                        $scope.$broadcast('route-displayed');
                     }
                     else {
                         console.log(status);
                         console.log(response);
+
+                        $cordovaToast.showShortCenter('Ocurrió un problema al mostrar la ruta');
                     }
 
 
                 });
             }, function (error) {
+                    $log.log(error);
+                    $log.log('Instances: ' + uiGmapIsReady.instances());
+                }
+            );
+        }
+
+        function clearRoute() {
+            navigating = false;
+            uiGmapIsReady.promise(1).then(function(instances) {
+
+                    if (directionsDisplay) {
+                        directionsDisplay.setMap(null);
+                    }
+
+
+                }, function (error) {
                     $log.log(error);
                     $log.log('Instances: ' + uiGmapIsReady.instances());
                 }
@@ -476,9 +445,86 @@ angular.module('starter.controllers')
             return self.newStationRating.rating > 3 || (angular.isDefined(value) && !!value);
         }
 
+        function fitBoundsToRoute() {
+            uiGmapIsReady.promise(1).then( function(instances) {
+                var bounds = new google.maps.LatLngBounds();
+
+                bounds.extend(new google.maps.LatLng(self.myLocation.latitude, self.myLocation.longitude));
+                bounds.extend(new google.maps.LatLng(self.selectedStation.latitude, self.selectedStation.longitude));
+
+                instances[0].map.fitBounds(bounds);
+            });
+        }
+
+        function startWatchLocation() {
+            $ionicPlatform.ready(function() {
+                watchLocation = $cordovaGeolocation.watchPosition(geolocationOptions);
+                $log.log('before then:'+ angular.toJson(watchLocation));
+                watchLocation.then(
+                    null,
+                    function(error) {
+
+                        $log.log('Cordova Plugins: ' + angular.toJson(cordova.plugins));
+
+                        var popup;
+
+                        if (startingView === true) //&& error.code === error.PERMISSION_DENIED || error.code === error.POSITION_UNAVAILABLE )
+                        {
+                            if (ionic.Platform.isAndroid() === true) {
+                                popup = $ionicPopup.alert({
+                                    title: 'Servicios de ubicación desactivados',
+                                    template: 'Habilitar servicios de ubicación.',
+                                    cancelText: 'Cancelar',
+                                    okText: 'Habilitar'
+                                });
+                                popup.then(function (res) {
+                                    $log.log(angular.toJson(res));
+                                    if (res) {
+                                        cordova.plugins.diagnostic.switchToLocationSettings();
+                                    }
+                                });
+                            }
+                            else {
+                                popup = $ionicPopup.alert({
+                                    title: 'Servicios de ubicación desactivados',
+                                    template: 'Habilita la localización de tu dispositvo',
+                                    okText: 'Aceptar'
+                                });
+                            }
+                        }
+                        else {
+                            $cordovaToast.showShortCenter('No pudimos determinar tu ubicación. Valida la configuración de tu dispositivo');
+                        }
+
+                        $log.log('geoerror: ' + angular.toJson(error));
+                    },
+                    function(position) {
+
+                        // $scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
+                        $timeout(function() {
+
+                            var coords = [position.coords.latitude, position.coords.longitude];
+
+                            self.myLocation.latitude = coords[0];
+                            self.myLocation.longitude = coords[1];
+
+                            if (navigating === true) {
+                                fitBoundsToRoute();
+                            }
+                            else if (startingView === true) {
+                                centerMap();
+                            }
+
+                            startingView = false;
+
+                            retrieveStations(coords[0], coords[1], radiusInKm);
+                        });
+                    });
+            });
+        }
+
         function init() {
             console.log('Init Map Controller');
-            console.log(window.location.href);
 
             uiGmapGoogleMapApi.then(function(maps) {
 
@@ -494,6 +540,10 @@ angular.module('starter.controllers')
                 );
             });
 
+            $scope.$on('$ionicView.beforeEnter', function(e) {
+                startingView = true;
+            });
+
             $scope.$on('$ionicView.beforeLeave', function(e) {
                closeBottomSheet();
             });
@@ -506,31 +556,12 @@ angular.module('starter.controllers')
                 self.bottomSheetModal = modal;
             });
 
-            $ionicPlatform.ready(function() {
-                watchLocation = $cordovaGeolocation.watchPosition({maximumAge: 2000, timeout: 4000, enableHighAccuracy: true});
-                watchLocation.then(
-                    null,
-                    function(error) {
-                        $log.log(error);
-                        $cordovaToast.showShortCenter(error);
+            startWatchLocation();
 
-                    },
-                    function(position) {
-                        // $scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
-                        $timeout(function() {
-                            self.myLocation.latitude = position.coords.latitude;
-                            self.myLocation.longitude = position.coords.longitude;
-
-                            self.myLocationMarker.options.visible = true;
-                        });
-                    });
-            });
-
-            mapWidgetsChannel.add('centerOnMyLocation', centerOnMyLocation);
+            mapWidgetsChannel.add('centerOnMyLocation', centerMap);
             mapWidgetsChannel.add('calculateRoute', calculateRoute);
             mapWidgetsChannel.add('nearestGreenStationRoute', nearestGreenStationRoute);
-
-            centerOnMyLocation();
+            mapWidgetsChannel.add('clearRoute', clearRoute);
         }
     })
     .controller('MapGeneralWidgetsCtrl', function($scope, $timeout, mapWidgetsChannel) {
@@ -540,32 +571,47 @@ angular.module('starter.controllers')
             mapWidgetsChannel.invoke('centerOnMyLocation');
         };
     })
-    .controller('MapStationWidgetsCtrl', function($scope, mapWidgetsChannel) {
+    .controller('MapStationWidgetsCtrl', function($scope, $log, mapWidgetsChannel) {
         var self = this;
+
+        $log.log('--->>> MapStationWidgetsCtrl');
 
         self.nearestStation = { id: "" };
 
-        self.displayStationMapActions = false;
-        self.showNearestGreenStationAction = false;
+        self.showNormalActions = true;
+        self.showBottomSheetActions = false;
+        self.showNavigationModelActions = false;
 
-        self.calculateRoute = function (){
-            mapWidgetsChannel.invoke('calculateRoute');
-        };
+        self.showNearestGreenStationAction = false;
 
         self.nearestGreenStationRoute = function (){
             mapWidgetsChannel.invoke('nearestGreenStationRoute');
+            self.showNearestGreenStationAction = true;
+        };
+
+        self.clearRoute = function () {
+            mapWidgetsChannel.invoke('clearRoute');
+            self.showNavigationModelActions = false;
+            self.showNormalActions = true;
         };
 
         $scope.$on('bottom-sheet.shown', function(event) {
-            self.displayStationMapActions = true;
+            self.showBottomSheetActions = true;
+            self.showNormalActions = false;
         });
 
         $scope.$on('bottom-sheet.hidden', function(event) {
-            self.displayStationMapActions = false;
+            self.showBottomSheetActions = false;
+            self.showNormalActions = true;
         });
 
         $scope.$on('green-station-entered', function(event) {
             self.showNearestGreenStationAction = true;
+        });
+
+        $scope.$on('route-displayed', function(event) {
+            self.showNavigationModelActions = true;
+            self.showNormalActions = false;
         });
     });
 
