@@ -18,12 +18,15 @@ angular.module('starter.controllers')
         var stationMarkers = [];
 
         var watchLocation = null;
+        var geolocationSwitchModeAttempted = false;
 
         var findingNearestStation = false;
         var navigating = false;
         var startingView = true;
 
-        var geolocationOptions = { maximumAge: 2000, timeout: 4000 };
+        var findNearestStationPopup = null;
+
+        var geolocationOptions = { maximumAge: 2000, timeout: 15000, enableHighAccuracy: true };
 
         self.myLocation = {};
         self.myLocationMarker = {
@@ -111,19 +114,14 @@ angular.module('starter.controllers')
 
                 self.myLocationMarker.options.visible = true;
             }
-            else {
-                if (watchLocation !== null) {
 
-                    $log.log(angular.toJson(watchLocation));
-                    $log.log('clearWatch2 -->' + angular.toJson($cordovaGeolocation.clearWatch));
-
-                    $cordovaGeolocation.clearWatch(watchLocation.watchID);
-                    startWatchLocation();
-                }
-            }
+            startWatchLocation();
         }
 
         function retrieveStations (latitude, longitude, radiusKm) {
+
+            $log.log('retrieve from:' + latitude + ',' + longitude);
+
             if (!geoQuery) {
                 geoQuery = GeofireRef.query({
                     center: [latitude, longitude],
@@ -135,13 +133,18 @@ angular.module('starter.controllers')
             }
             // Only reload stations if the previous location is 1 km from the current location
             // or if there are no station on the map
-            else if (Object.keys(stationsInQuery).length === 0 ||
-                GeoFire.distance(geoQuery.center(), [latitude, longitude]) > 1) {
+            else {
+                $log.log('diatancia: ' + GeoFire.distance(geoQuery.center(), [latitude, longitude]));
 
-                geoQuery.updateCriteria({
-                    center: [latitude, longitude],
-                    radius: radiusKm
-                });
+                if (GeoFire.distance(geoQuery.center(), [latitude, longitude]) > 1) {
+
+                    $log.log('updating geoquery');
+
+                    geoQuery.updateCriteria({
+                        center: [latitude, longitude],
+                        radius: radiusKm
+                    });
+                }
             }
         }
 
@@ -188,6 +191,11 @@ angular.module('starter.controllers')
         function onGeoQueryReady() {
 
             if (Object.keys(stationsInQuery).length > 0) {
+
+                if (findNearestStationPopup) {
+                    findNearestStationPopup.close();
+                    findNearestStationPopup = null;
+                }
 
                 if (findingNearestStation === false && navigating === false) {
 
@@ -245,11 +253,17 @@ angular.module('starter.controllers')
 
         function nearestStationRouteConfirmation() {
 
-            var confirmPopup = $ionicPopup.confirm({
-                title: '',
-                template: 'No hay estaciones cercanas. ¿Deseas ver la ruta a la estación más próxima?'
+            if (findNearestStationPopup) {
+                findNearestStationPopup.close();
+                findNearestStationPopup = null;
+            }
+
+            findNearestStationPopup = $ionicPopup.confirm({
+                title: 'No hay estaciones cercanas',
+                template: '¿Deseas ver la ruta a la estación más próxima?',
+                cancelText: 'Cancelar'
             });
-            confirmPopup.then(function(res) {
+            findNearestStationPopup.then(function(res) {
                 if(res) {
                     findNearestStation();
                 }
@@ -458,47 +472,66 @@ angular.module('starter.controllers')
 
         function startWatchLocation() {
             $ionicPlatform.ready(function() {
+                if (watchLocation !== null) {
+                    $cordovaGeolocation.clearWatch(watchLocation.watchID);
+                }
+
                 watchLocation = $cordovaGeolocation.watchPosition(geolocationOptions);
                 $log.log('before then:'+ angular.toJson(watchLocation));
                 watchLocation.then(
                     null,
                     function(error) {
 
-                        $log.log('Cordova Plugins: ' + angular.toJson(cordova.plugins));
+                        if(geolocationSwitchModeAttempted === false) {
 
-                        var popup;
+                            geolocationOptions = { maximumAge: 2000, timeout: 4000, enableHighAccuracy: false };
 
-                        if (startingView === true) //&& error.code === error.PERMISSION_DENIED || error.code === error.POSITION_UNAVAILABLE )
-                        {
-                            if (ionic.Platform.isAndroid() === true) {
-                                popup = $ionicPopup.alert({
-                                    title: 'Servicios de ubicación desactivados',
-                                    template: 'Habilitar servicios de ubicación.',
-                                    cancelText: 'Cancelar',
-                                    okText: 'Habilitar'
-                                });
-                                popup.then(function (res) {
-                                    $log.log(angular.toJson(res));
-                                    if (res) {
-                                        cordova.plugins.diagnostic.switchToLocationSettings();
-                                    }
-                                });
-                            }
-                            else {
-                                popup = $ionicPopup.alert({
-                                    title: 'Servicios de ubicación desactivados',
-                                    template: 'Habilita la localización de tu dispositvo',
-                                    okText: 'Aceptar'
-                                });
-                            }
+                            startWatchLocation();
+                            geolocationSwitchModeAttempted = true;
                         }
                         else {
-                            $cordovaToast.showShortCenter('No pudimos determinar tu ubicación. Valida la configuración de tu dispositivo');
+
+                            $log.log('Cordova Plugins: ' + angular.toJson(cordova.plugins));
+
+                            var popup;
+
+                            if (startingView === true) //&& error.code === error.PERMISSION_DENIED || error.code === error.POSITION_UNAVAILABLE )
+                            {
+                                if (ionic.Platform.isAndroid() === true) {
+                                    popup = $ionicPopup.alert({
+                                        title: 'Servicios de ubicación desactivados',
+                                        template: 'Habilitar servicios de ubicación.',
+                                        cancelText: 'Cancelar',
+                                        okText: 'Habilitar'
+                                    });
+                                    popup.then(function (res) {
+                                        $log.log(angular.toJson(res));
+                                        if (res) {
+                                            cordova.plugins.diagnostic.switchToLocationSettings();
+                                        }
+                                    });
+                                }
+                                else {
+                                    popup = $ionicPopup.alert({
+                                        title: 'Servicios de ubicación desactivados',
+                                        template: 'Habilita la localización de tu dispositvo',
+                                        okText: 'Aceptar'
+                                    });
+                                }
+                            }
+                            else {
+                                $cordovaToast.showShortCenter('No pudimos determinar tu ubicación. Valida la configuración de tu dispositivo');
+                            }
+
+                            startingView = false;
+
                         }
 
                         $log.log('geoerror: ' + angular.toJson(error));
                     },
                     function(position) {
+
+                        $log.log('coords: ' +  angular.toJson(position.coords));
 
                         // $scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
                         $timeout(function() {
@@ -508,6 +541,7 @@ angular.module('starter.controllers')
                             self.myLocation.latitude = coords[0];
                             self.myLocation.longitude = coords[1];
 
+                            $log.log('then startingView: ' +  startingView);
                             if (navigating === true) {
                                 fitBoundsToRoute();
                             }
@@ -515,9 +549,9 @@ angular.module('starter.controllers')
                                 centerMap();
                             }
 
-                            startingView = false;
-
                             retrieveStations(coords[0], coords[1], radiusInKm);
+
+                            startingView = false;
                         });
                     });
             });
@@ -531,6 +565,8 @@ angular.module('starter.controllers')
             });
 
             $scope.$on('$ionicView.afterEnter', function(e) {
+                $log.log('view after enter');
+
                 uiGmapIsReady.promise(1).then(function(instances) {
                     google.maps.event.trigger(instances[0].map, "resize");
                 }, function (error) {
@@ -541,10 +577,15 @@ angular.module('starter.controllers')
             });
 
             $scope.$on('$ionicView.beforeEnter', function(e) {
+                $log.log('view before enter');
                 startingView = true;
+
+                geolocationOptions = { maximumAge: 2000, timeout: 15000, enableHighAccuracy: true };
+                geolocationSwitchModeAttempted = false;
             });
 
             $scope.$on('$ionicView.beforeLeave', function(e) {
+                $log.log('view before leave');
                closeBottomSheet();
             });
 
