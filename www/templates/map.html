@@ -27,7 +27,7 @@
             <ui-gmap-map-control template="my-location-ctrl.tpl.html" position="RIGHT_BOTTOM"
                                  controller="MapGeneralWidgetsCtrl as mapvm"></ui-gmap-map-control>
 
-            <ui-gmap-map-control template="map-actions-ctrl.tpl.html" position="TOP_LEFT"
+            <ui-gmap-map-control template="map-actions-ctrl.tpl.html" position="TOP_LEFT" ng-cloak
                                  controller="MapStationWidgetsCtrl as mapvm"></ui-gmap-map-control>
 
             <ui-gmap-window coords="vm.stationInfoWindow.coords" show="vm.stationInfoWindow.show"

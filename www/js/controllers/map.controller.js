@@ -24,6 +24,8 @@ angular.module('starter.controllers')
         var navigating = false;
         var startingView = true;
 
+        var previousNavigatinCoords = null;
+
         var findNearestStationPopup = null;
 
         var geolocationOptions = { maximumAge: 2000, timeout: 15000, enableHighAccuracy: true };
@@ -61,7 +63,9 @@ angular.module('starter.controllers')
                     stylers: [
                         { visibility: "off" }
                     ]
-                }]
+                }],
+            minZoom: 7,
+            maxZoom: 16
         };
         self.selectedStation = null;
         self.nearestStation = null;
@@ -97,11 +101,9 @@ angular.module('starter.controllers')
 
             if (self.myLocation.latitude && self.myLocation.longitude) {
 
-                self.map = {
-                    center: {
-                        latitude: self.myLocation.latitude,
-                        longitude: self.myLocation.longitude
-                    }
+                self.map.center = {
+                    latitude: self.myLocation.latitude,
+                    longitude: self.myLocation.longitude
                 };
 
                 if (Object.keys(stationsInQuery).length > 0) {
@@ -197,11 +199,7 @@ angular.module('starter.controllers')
                     findNearestStationPopup = null;
                 }
 
-                if (findingNearestStation === false && navigating === false) {
-
-                   fitBoundsToNearestStations();
-                }
-                else {
+                if (findingNearestStation === true) {
                     var nearestStation = _.chain(stationsInQuery)
                         .sortBy(function (station) {
                             return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude]);
@@ -214,6 +212,10 @@ angular.module('starter.controllers')
 
                     $ionicLoading.hide();
                 }
+                else if (navigating === false) {
+                    fitBoundsToNearestStations();
+                }
+
             }
             else {
                 if (findingNearestStation === false) {
@@ -313,7 +315,12 @@ angular.module('starter.controllers')
 
                     if (status == google.maps.DirectionsStatus.OK) {
                         directionsDisplay.setDirections(response);
+
+                        navigating = true;
+                        previousNavigatinCoords = [self.myLocation.latitude, self.myLocation.longitude];
+
                         self.bottomSheetModal.hide();
+
                         $scope.$broadcast('route-displayed');
                     }
                     else {
@@ -333,13 +340,13 @@ angular.module('starter.controllers')
         }
 
         function clearRoute() {
-            navigating = false;
             uiGmapIsReady.promise(1).then(function(instances) {
 
                     if (directionsDisplay) {
                         directionsDisplay.setMap(null);
                     }
 
+                    navigating = false;
 
                 }, function (error) {
                     $log.log(error);
@@ -543,7 +550,12 @@ angular.module('starter.controllers')
 
                             $log.log('then startingView: ' +  startingView);
                             if (navigating === true) {
-                                fitBoundsToRoute();
+                                // Adjust the bounds if the device moved 20 meters
+                                if (previousNavigatinCoords !== null && GeoFire.distance(previousNavigatinCoords, coords) > 0.02) {
+
+                                    previousNavigatinCoords = coords;
+                                    fitBoundsToRoute();
+                                }
                             }
                             else if (startingView === true) {
                                 centerMap();
@@ -587,6 +599,22 @@ angular.module('starter.controllers')
             $scope.$on('$ionicView.beforeLeave', function(e) {
                 $log.log('view before leave');
                closeBottomSheet();
+            });
+
+            $ionicPlatform.on('pause', function(event) {
+                $log.log('pause ');
+
+                $ionicPlatform.ready(function() {
+                    if (watchLocation !== null) {
+                        $cordovaGeolocation.clearWatch(watchLocation.watchID);
+                    }
+                });
+            });
+
+            $ionicPlatform.on('resume', function(event) {
+                $log.log('resume');
+
+                startWatchLocation();
             });
 
             $ionicModal.fromTemplateUrl('map-bottom-sheet.html', {

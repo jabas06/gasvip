@@ -110,7 +110,7 @@ angular.module('starter', [
     .config(function(uiGmapGoogleMapApiProvider) {
         uiGmapGoogleMapApiProvider.configure({
             key: 'AIzaSyDVhbumpP6UqOTxLYgk5V9aw377JkK3lwI',
-            v: '3.20',
+            v: '3.21',
             libraries: 'places'
         });
     })
