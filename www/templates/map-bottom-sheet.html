@@ -1,6 +1,6 @@
-<ion-bottom-sheet-view class="stable-border">
+<ion-bottom-sheet-view class="map-bottom-sheet stable-border">
     <ion-header-bar align-title="left">
-        <h3 class="title"></h3>
+        <h3 class="title slide-in-down" ng-class="vm.selectedStation.id">{{vm.selectedStation.name}}</h3>
         <button class="button button-icon icon ion-android-close" ng-click="vm.closeBottomSheet()"></button>
     </ion-header-bar>
     <ion-content>
@@ -10,9 +10,6 @@
             </div>
             <div class="col col-75">
                 <div class="list">
-                    <div class="item item-divider">
-                        <h3 class="title">{{vm.selectedStation.name}}</h3>
-                    </div>
                     <a class="item item-icon-left item-icon-right rating" ng-click="vm.openRateStationModal()"
                        ng-show="loggedIn">
                         <i class="icon ion-ios-star rated"></i>
