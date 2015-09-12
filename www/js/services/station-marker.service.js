@@ -47,6 +47,6 @@ angular.module('starter.services')
 
                 return totalRating;
             }
-        }
+        };
 
     });

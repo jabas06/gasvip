@@ -1,13 +1,23 @@
 angular.module('starter.controllers')
-    .controller('LoginCtrl', function($timeout, $state, $ionicHistory, $ionicLoading, $cordovaOauth, $cordovaToast, Auth, Ref) {
+    .controller('LoginCtrl', function($timeout, $log, $state, $ionicHistory, $ionicLoading, $cordovaFacebook, $cordovaToast, Auth, Ref) {
         var self =  this;
 
-        self.oauthLogin = oauthLogin;
+        self.oauthLogin = login;
         self.anonymousLogin = anonymousLogin;
 
         // *********************************
         // Internal
         // *********************************
+
+        function login() {
+            $cordovaFacebook.login(['email', 'user_likes', 'user_about_me'])
+                .then(function(result) {
+                    $log.log('fb login: ' + angular.toJson(result));
+                    Auth.$authWithOAuthToken("facebook", result.accessToken).then(afterSuccessLogin, showError);
+                }, function (error) {
+                    $log.log('fb login error: ' + angular.toJson(error));
+                });
+        }
 
         function oauthLogin(provider) {
             var options = {};
