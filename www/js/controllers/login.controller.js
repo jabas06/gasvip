@@ -12,26 +12,44 @@ angular.module('starter.controllers')
         function login(provider) {
             if(ionic.Platform.isWebView()){
 
-                $cordovaFacebook.login(['email', 'user_likes', 'user_about_me']).then(function(success){
+                $cordovaFacebook.logout()
+                    .finally(function() {
+                        $cordovaFacebook.getLoginStatus().then(function(result){
+                            $log.log('fb login: ' + angular.toJson(result));
 
-                    $log.log('fb login: ' + angular.toJson(success));
+                            if (result.status === 'connected') {
 
-                    if (success.status === 'connected') {
-
-                        Auth.$authWithOAuthToken(provider, success.authResponse.accessToken).then(afterSuccessLogin, showError);
-                    }
-                    else {
-                        $cordovaToast.showShortCenter('No pudimos autenticarte');
-                    }
-
-                }, function(error){
-                    $log.log('fb login error: ' + angular.toJson(error));
-                });
-
+                                Auth.$authWithOAuthToken(provider, result.authResponse.accessToken).then(afterSuccessLogin, showError);
+                            }
+                            else {
+                                facebookLogin();
+                            }
+                        },function(){
+                            facebookLogin();
+                        });
+                    });
             }
             else {
                 oauthLogin(provider);
             }
+        }
+
+        function facebookLogin() {
+            $cordovaFacebook.login(['email', 'user_likes', 'user_about_me']).then(function(result){
+
+                $log.log('fb login: ' + angular.toJson(result));
+
+                if (result.status === 'connected') {
+
+                    Auth.$authWithOAuthToken('facebook', result.authResponse.accessToken).then(afterSuccessLogin, showError);
+                }
+                else {
+                    $cordovaToast.showShortCenter('No pudimos autenticarte');
+                }
+
+            }, function(error){
+                $log.log('fb login error: ' + angular.toJson(error));
+            });
         }
 
         function oauthLogin(provider) {
