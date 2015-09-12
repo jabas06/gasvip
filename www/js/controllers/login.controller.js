@@ -9,14 +9,29 @@ angular.module('starter.controllers')
         // Internal
         // *********************************
 
-        function login() {
-            $cordovaFacebook.login(['email', 'user_likes', 'user_about_me'])
-                .then(function(result) {
-                    $log.log('fb login: ' + angular.toJson(result));
-                    Auth.$authWithOAuthToken("facebook", result.accessToken).then(afterSuccessLogin, showError);
-                }, function (error) {
+        function login(provider) {
+            if(ionic.Platform.isWebView()){
+
+                $cordovaFacebook.login(['email', 'user_likes', 'user_about_me']).then(function(success){
+
+                    $log.log('fb login: ' + angular.toJson(success));
+
+                    if (success.status === 'connected') {
+
+                        Auth.$authWithOAuthToken(provider, success.authResponse.accessToken).then(afterSuccessLogin, showError);
+                    }
+                    else {
+                        $cordovaToast.showShortCenter('No pudimos autenticarte');
+                    }
+
+                }, function(error){
                     $log.log('fb login error: ' + angular.toJson(error));
                 });
+
+            }
+            else {
+                oauthLogin(provider);
+            }
         }
 
         function oauthLogin(provider) {
@@ -85,6 +100,7 @@ angular.module('starter.controllers')
 
         function showError(error) {
             $ionicLoading.hide();
+            $log.log('fireb login: ' + angular.toJson(error));
             $cordovaToast.showShortCenter(error);
         }
 
