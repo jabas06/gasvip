@@ -65,7 +65,7 @@ angular.module('starter.controllers')
                     ]
                 }],
             minZoom: 7,
-            maxZoom: 16
+            maxZoom: 18
         };
         self.selectedStation = null;
         self.nearestStation = null;
