@@ -29,11 +29,11 @@ angular.module('starter.services')
 
             function getRatingValue() {
                 var usersRating = self.rating ? self.rating.sum / self.rating.count : null;
-                var profecoScore = self.profeco ? 1 - (self.profeco.immobilizedPumps/self.profeco.gasolinePumps) : null;
+                var profecoScore = self.profeco ? self.profeco.score : null;
                 var totalRating;
 
                 if (usersRating && profecoScore) {
-                    totalRating = ((5 * profecoScore) + usersRating) / 2;
+                    totalRating = usersRating * profecoScore;
                 }
                 else if (usersRating) {
                     totalRating = usersRating;
@@ -42,7 +42,7 @@ angular.module('starter.services')
                     totalRating = (5 * profecoScore);
                 }
                 else {
-                    totalRating = 0;
+                    totalRating = null;
                 }
 
                 return totalRating;

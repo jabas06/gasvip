@@ -7740,7 +7740,7 @@ a.button {
   text-shadow: 0px 2px 2px #737373; }
 
 .rating .badge {
-  display: initial !important;
+  display: initial;
   position: initial !important;
   top: initial !important;
   right: initial !important; }

@@ -13,11 +13,20 @@
                     <a class="item item-icon-left item-icon-right rating" ng-click="vm.openRateStationModal()"
                        ng-show="loggedIn">
                         <i class="icon ion-ios-star rated"></i>
-                        <span class="badge badge-positive" ng-bind="vm.selectedStation.ratingValue | number:1"></span>
+                        <span class="badge badge-positive" ng-show="vm.selectedStation.ratingValue !== null"
+                              ng-bind="vm.selectedStation.ratingValue | number:1"></span>
+                        <span class="badge badge-positive" ng-show="vm.selectedStation.ratingValue === null">
+                            sin evaluar aún
+                        </span>
+                        <span class="item-note">
+                            Evaluar
+                        </span>
                         <i class="icon ion-android-arrow-forward"></i>
                     </a>
                     <a class="item  item-icon-right" ng-click="vm.calculateRoute()">
-                        Cómo llegar
+                        <span class="item-note">
+                            Cómo llegar
+                        </span>
                         <i class="icon ion-android-navigate"></i>
                     </a>
                 </div>
