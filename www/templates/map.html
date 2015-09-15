@@ -35,7 +35,8 @@
                             templateUrl="vm.stationInfoWindow.templateUrl"
                             templateParameter="vm.stationInfoWindow.templateParameter" ng-cloak>
             </ui-gmap-window>
-            <ui-gmap-markers models="vm.stationMarkers" coords="'self'" icon="'icon'" click="onClick">
+            <ui-gmap-markers models="vm.stationMarkers" coords="'self'" icon="'icon'"
+                             options="'options'" click="onClick">
             </ui-gmap-markers>
             <ui-gmap-marker coords="vm.myLocation" options="vm.myLocationMarker.options"
                             idkey="vm.myLocationMarker.id" icon="vm.myLocationMarker.icon">

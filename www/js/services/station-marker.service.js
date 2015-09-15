@@ -12,6 +12,10 @@ angular.module('starter.services')
             self.rating = station.rating;
             self.profeco = station.profeco;
 
+            self.options= {
+                visible: true
+            };
+
             self.onClick = stationMarkerClickClosure(self);
 
             self.refreshMarkerRating = refreshMarkerRating;

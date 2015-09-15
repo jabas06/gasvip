@@ -2,6 +2,8 @@ angular.module('starter.controllers')
     .controller('LoginCtrl', function($timeout, $log, $state, $ionicHistory, $ionicLoading, $cordovaFacebook, $cordovaToast, Auth, Ref) {
         var self =  this;
 
+        var loginScope = ['email', 'user_likes', 'user_about_me'];
+
         self.oauthLogin = login;
         self.anonymousLogin = anonymousLogin;
 
@@ -12,19 +14,26 @@ angular.module('starter.controllers')
         function login(provider) {
             if(ionic.Platform.isWebView()){
 
+                $ionicLoading.show({template: 'Iniciando sesión...'});
                 $cordovaFacebook.logout()
                     .finally(function() {
                         $cordovaFacebook.getLoginStatus().then(function(result){
+
+                            $ionicLoading.hide();
+
                             $log.log('fb login: ' + angular.toJson(result));
 
                             if (result.status === 'connected') {
 
-                                Auth.$authWithOAuthToken(provider, result.authResponse.accessToken).then(afterSuccessLogin, showError);
+                                $ionicLoading.show({template: 'Iniciando sesión...'});
+                                Auth.$authWithOAuthToken(provider, result.authResponse.accessToken).then(afterSuccessLogin, showError)
                             }
                             else {
                                 facebookLogin();
                             }
                         },function(){
+                            $ionicLoading.hide();
+
                             facebookLogin();
                         });
                     });
@@ -35,19 +44,24 @@ angular.module('starter.controllers')
         }
 
         function facebookLogin() {
-            $cordovaFacebook.login(['email', 'user_likes', 'user_about_me']).then(function(result){
+            $ionicLoading.show({template: 'Iniciando sesión...'});
 
+            $cordovaFacebook.login(loginScope).then(function(result){
+
+                $ionicLoading.hide()
                 $log.log('fb login: ' + angular.toJson(result));
 
                 if (result.status === 'connected') {
 
-                    Auth.$authWithOAuthToken('facebook', result.authResponse.accessToken).then(afterSuccessLogin, showError);
+                    $ionicLoading.show({template: 'Iniciando sesión...'});
+                    Auth.$authWithOAuthToken('facebook', result.authResponse.accessToken).then(afterSuccessLogin, showError)
                 }
                 else {
                     $cordovaToast.showShortCenter('No pudimos autenticarte');
                 }
 
             }, function(error){
+                $ionicLoading.hide();
                 $log.log('fb login error: ' + angular.toJson(error));
             });
         }
@@ -57,10 +71,12 @@ angular.module('starter.controllers')
 
             if (provider === 'facebook')
             {
-                options.scope = 'email,user_likes,user_about_me';
+                options.scope = loginScope.join();
             }
 
-            Auth.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError);
+            $ionicLoading.show({template: 'Iniciando sesión...'});
+            Auth.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError)
+
 
         }
 
@@ -72,21 +88,24 @@ angular.module('starter.controllers')
         function afterSuccessLogin(authData)
         {
             if (authData) {
-/*                $ionicLoading.show({
-                    noBackdrop: false
-                });*/
 
+                $ionicLoading.show({template: 'Iniciando sesión...'});
                 //Register the user if the account doesn't exist
                 Ref.child('users/'+authData.uid).once('value',  function(data) {
+                    $ionicLoading.hide();
+
                     if (data.val() === null){
 
                         var userInfo = getUserInfo(authData);
 
+                        $ionicLoading.show({template: 'Iniciando sesión...'});
                         Ref.child('users').child(authData.uid).set({
 
                             name: userInfo.name,
                             email: userInfo.email
                         }, function(error) {
+
+                            $ionicLoading.hide();
 
                             if (error) {
                                 showError(error);
@@ -103,9 +122,7 @@ angular.module('starter.controllers')
         }
 
         function redirect() {
-
             $timeout(function() {
-                $ionicLoading.hide();
 
                 $ionicHistory.nextViewOptions({
                     disableAnimate: true,

@@ -1,5 +1,5 @@
 angular.module('starter.controllers')
-    .controller('AccountCtrl', function($scope, $ionicHistory, user, Auth, Ref, $firebaseObject) {
+    .controller('AccountCtrl', function($scope, $ionicLoading, $ionicHistory, user, Auth, Ref, $firebaseObject) {
         $scope.vm = {};
         var self = $scope.vm;
         var profile = $firebaseObject(Ref.child('users').child(user.uid));
@@ -23,6 +23,9 @@ angular.module('starter.controllers')
         }
 
         function init() {
+            $ionicLoading.show({template: 'Cargando perfil...'});
+            profile.$loaded().finally(function() { $ionicLoading.hide(); })
+
             profile.$bindTo($scope, 'vm.profile');
         }
 

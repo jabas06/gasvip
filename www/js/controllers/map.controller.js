@@ -299,7 +299,7 @@ angular.module('starter.controllers')
                     directionsService = new google.maps.DirectionsService();
 
                 if(!directionsDisplay)
-                    directionsDisplay = new google.maps.DirectionsRenderer();
+                    directionsDisplay = new google.maps.DirectionsRenderer({ suppressMarkers: true });
 
                 var instanceMap = instances[0].map;
 
@@ -315,6 +315,8 @@ angular.module('starter.controllers')
 
                     if (status == google.maps.DirectionsStatus.OK) {
                         directionsDisplay.setDirections(response);
+
+                        onlyShowSelectedStation();
 
                         navigating = true;
                         previousNavigatinCoords = [self.myLocation.latitude, self.myLocation.longitude];
@@ -339,6 +341,24 @@ angular.module('starter.controllers')
             );
         }
 
+        function onlyShowSelectedStation() {
+            angular.forEach(stationMarkers, function (marker) {
+                if (self.selectedStation.id !== marker.id) {
+                    marker.options.visible = false;
+                }
+                else {
+                    marker.options.visible = true;
+                }
+            });
+        }
+
+        function showAllStationMarkers() {
+            angular.forEach(stationMarkers, function (marker) {
+                    marker.options.visible = true;
+            });
+        }
+
+
         function clearRoute() {
             uiGmapIsReady.promise(1).then(function(instances) {
 
@@ -347,6 +367,7 @@ angular.module('starter.controllers')
                     }
 
                     navigating = false;
+                    showAllStationMarkers()
 
                 }, function (error) {
                     $log.log(error);
@@ -356,7 +377,6 @@ angular.module('starter.controllers')
         }
 
         function nearestGreenStationRoute() {
-
             var greenStation = _.chain(stationsInQuery)
                 .filter(function (station) {
                     return station.ratingValue >= 4;
@@ -368,8 +388,6 @@ angular.module('starter.controllers')
 
             self.selectedStation = greenStation;
             calculateRoute();
-
-            $ionicLoading.hide();
         }
 
         function closeBottomSheet(){
