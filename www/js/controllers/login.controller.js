@@ -26,7 +26,7 @@ angular.module('starter.controllers')
                             if (result.status === 'connected') {
 
                                 $ionicLoading.show({template: 'Iniciando sesión...'});
-                                Auth.$authWithOAuthToken(provider, result.authResponse.accessToken).then(afterSuccessLogin, showError)
+                                Auth.$authWithOAuthToken(provider, result.authResponse.accessToken).then(afterSuccessLogin, showError);
                             }
                             else {
                                 facebookLogin();
@@ -48,13 +48,13 @@ angular.module('starter.controllers')
 
             $cordovaFacebook.login(loginScope).then(function(result){
 
-                $ionicLoading.hide()
+                $ionicLoading.hide();
                 $log.log('fb login: ' + angular.toJson(result));
 
                 if (result.status === 'connected') {
 
                     $ionicLoading.show({template: 'Iniciando sesión...'});
-                    Auth.$authWithOAuthToken('facebook', result.authResponse.accessToken).then(afterSuccessLogin, showError)
+                    Auth.$authWithOAuthToken('facebook', result.authResponse.accessToken).then(afterSuccessLogin, showError);
                 }
                 else {
                     $cordovaToast.showShortCenter('No pudimos autenticarte');
@@ -75,7 +75,7 @@ angular.module('starter.controllers')
             }
 
             $ionicLoading.show({template: 'Iniciando sesión...'});
-            Auth.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError)
+            Auth.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError);
 
 
         }

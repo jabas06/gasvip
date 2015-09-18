@@ -1,5 +1,5 @@
 angular.module('starter.controllers')
-    .controller('MapCtrl', function($scope, $timeout, $log, $window,
+    .controller('MapCtrl', function($rootScope, $scope, $timeout, $log, $window,
                                     $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop, $ionicPopup,
                                     $cordovaGeolocation, $cordovaToast, StationMarker,
                                     Ref, GeofireRef, geoUtils, GeoFire, _, catalogs,
@@ -367,7 +367,7 @@ angular.module('starter.controllers')
                     }
 
                     navigating = false;
-                    showAllStationMarkers()
+                    showAllStationMarkers();
 
                 }, function (error) {
                     $log.log(error);
@@ -587,11 +587,52 @@ angular.module('starter.controllers')
             });
         }
 
+        function enableMap(){
+            $ionicLoading.hide();
+        }
+
+        function disableMap(){
+            $ionicLoading.show({
+                template: 'You must be connected to the Internet to view this map.'
+            });
+        }
+
+        function addConnectivityListeners(){
+            if(ionic.Platform.isWebView()){
+
+                // Check if the map is already loaded when the user comes online,
+                //if not, load it
+                $rootScope.$on('$cordovaNetwork:online', function(event, networkState){
+                    //checkLoaded();
+                });
+
+                // Disable the map when the user goes offline
+                $rootScope.$on('$cordovaNetwork:offline', function(event, networkState){
+                    disableMap();
+                });
+
+            }
+            else {
+
+                //Same as above but for when we are not running on a device
+                window.addEventListener("online", function(e) {
+                    checkLoaded();
+                }, false);
+
+                window.addEventListener("offline", function(e) {
+                    disableMap();
+                }, false);
+            }
+        }
+
         function init() {
-            console.log('Init Map Controller');
+
+            //addConnectivityListeners();
 
             uiGmapGoogleMapApi.then(function(maps) {
-
+                $log.log(angular.toJson(maps));
+            }, function(error) {
+                $log.log('Error api' + angular.toJson(error));
             });
 
             $scope.$on('$ionicView.afterEnter', function(e) {
@@ -600,7 +641,7 @@ angular.module('starter.controllers')
                 uiGmapIsReady.promise(1).then(function(instances) {
                     google.maps.event.trigger(instances[0].map, "resize");
                 }, function (error) {
-                        console.log(error);
+                        $log.log('Error ready: ' + angular.toJson(error));
                         console.log('Instances: ' + uiGmapIsReady.instances());
                     }
                 );
