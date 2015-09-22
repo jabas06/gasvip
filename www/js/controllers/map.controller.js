@@ -1,9 +1,9 @@
 angular.module('starter.controllers')
     .controller('MapCtrl', function($rootScope, $scope, $timeout, $log, $window,
                                     $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop, $ionicPopup,
-                                    $cordovaGeolocation, $cordovaToast, StationMarker,
+                                    $cordovaGeolocation, $cordovaToast, StationMarker, uiGmapGoogleMapApi,
                                     Ref, GeofireRef, geoUtils, GeoFire, _, catalogs,
-                                    mapWidgetsChannel, uiGmapIsReady, uiGmapGoogleMapApi, Auth) {
+                                    mapWidgetsChannel, uiGmapIsReady, Auth) {
         var self = this;
 
         var directionsService = null;
@@ -30,6 +30,10 @@ angular.module('starter.controllers')
 
         var geolocationOptions = { maximumAge: 2000, timeout: 15000, enableHighAccuracy: true };
 
+        var lastNetworkStatus = '';
+
+        self.mapVisible = true;
+        
         self.myLocation = {};
         self.myLocationMarker = {
             id: '1',
@@ -516,8 +520,6 @@ angular.module('starter.controllers')
                         }
                         else {
 
-                            $log.log('Cordova Plugins: ' + angular.toJson(cordova.plugins));
-
                             var popup;
 
                             if (startingView === true) //&& error.code === error.PERMISSION_DENIED || error.code === error.POSITION_UNAVAILABLE )
@@ -556,8 +558,6 @@ angular.module('starter.controllers')
                     },
                     function(position) {
 
-                        $log.log('coords: ' +  angular.toJson(position.coords));
-
                         // $scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
                         $timeout(function() {
 
@@ -566,7 +566,6 @@ angular.module('starter.controllers')
                             self.myLocation.latitude = coords[0];
                             self.myLocation.longitude = coords[1];
 
-                            $log.log('then startingView: ' +  startingView);
                             if (navigating === true) {
                                 // Adjust the bounds if the device moved 20 meters
                                 if (previousNavigatinCoords !== null && GeoFire.distance(previousNavigatinCoords, coords) > 0.02) {
@@ -588,52 +587,82 @@ angular.module('starter.controllers')
         }
 
         function enableMap(){
-            $ionicLoading.hide();
+
+            uiGmapIsReady.promise(1).then(function(instances) {
+                    centerMap();
+                }, function (error) {
+                    $log.log(angular.toJson(error));
+
+                    recreateMap();
+                }
+            ).finally(function() {
+                    $ionicLoading.hide();
+                });
         }
 
         function disableMap(){
             $ionicLoading.show({
-                template: 'You must be connected to the Internet to view this map.'
+                template: 'Lamentamos el inconveniente. Debes estar conectado a Internet para utilizar el mapa',
+                noBackdrop: true
             });
+
+            clearLocationWatch();
+        }
+
+        function recreateMap(){
+            self.mapVisible = false;
+
+            $timeout(function(){
+                self.mapVisible = true;
+
+                uiGmapIsReady.promise(1).then(function(instances) {
+                        centerMap();
+                    }, function (error) {
+                        $log.log(angular.toJson(error));
+                        $cordovaToast.showLongCenter('Ocurrió un error al mostrar el mapa');
+                    }
+                );
+            }, 1000);
         }
 
         function addConnectivityListeners(){
-            if(ionic.Platform.isWebView()){
 
-                // Check if the map is already loaded when the user comes online,
-                //if not, load it
-                $rootScope.$on('$cordovaNetwork:online', function(event, networkState){
-                    //checkLoaded();
-                });
+            $ionicPlatform.ready(function() {
+                if(ionic.Platform.isWebView()){
 
-                // Disable the map when the user goes offline
-                $rootScope.$on('$cordovaNetwork:offline', function(event, networkState){
-                    disableMap();
-                });
+                    // Check if the map is already loaded when the user comes online,
+                    //if not, load it
+                    $rootScope.$on('$cordovaNetwork:online', function(event, networkState){
 
-            }
-            else {
+                        if (lastNetworkStatus !== 'online' && lastNetworkStatus !== '') {
+                            lastNetworkStatus = 'online';
+                            enableMap();
+                        }
+                    });
 
-                //Same as above but for when we are not running on a device
-                window.addEventListener("online", function(e) {
-                    checkLoaded();
-                }, false);
+                    // Disable the map when the user goes offline
+                    $rootScope.$on('$cordovaNetwork:offline', function(event, networkState){
+                        if (lastNetworkStatus !== 'offline') {
+                            lastNetworkStatus = 'offline';
+                            disableMap();
+                        }
+                    });
 
-                window.addEventListener("offline", function(e) {
-                    disableMap();
-                }, false);
-            }
+                }
+            });
+        }
+
+        function clearLocationWatch() {
+            $ionicPlatform.ready(function() {
+                if (watchLocation !== null) {
+                    $cordovaGeolocation.clearWatch(watchLocation.watchID);
+                }
+            });
         }
 
         function init() {
 
-            //addConnectivityListeners();
-
-            uiGmapGoogleMapApi.then(function(maps) {
-                $log.log(angular.toJson(maps));
-            }, function(error) {
-                $log.log('Error api' + angular.toJson(error));
-            });
+            addConnectivityListeners();
 
             $scope.$on('$ionicView.afterEnter', function(e) {
                 $log.log('view after enter');
@@ -663,11 +692,7 @@ angular.module('starter.controllers')
             $ionicPlatform.on('pause', function(event) {
                 $log.log('pause ');
 
-                $ionicPlatform.ready(function() {
-                    if (watchLocation !== null) {
-                        $cordovaGeolocation.clearWatch(watchLocation.watchID);
-                    }
-                });
+                clearLocationWatch();
             });
 
             $ionicPlatform.on('resume', function(event) {

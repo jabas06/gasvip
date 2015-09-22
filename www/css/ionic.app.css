@@ -7725,6 +7725,10 @@ a.button {
 .dark {
   background-color: #444; }
 
+.scroll-content > .full-content {
+  height: 100%;
+  width: 100%; }
+
 .angular-google-map, .angular-google-map-container {
   height: 100%;
   width: 100%; }

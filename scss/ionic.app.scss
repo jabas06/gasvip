@@ -30,6 +30,12 @@ $royal:                           #070715 !default;
   background-color: $dark;
 }
 
+
+.scroll-content > .full-content {
+  height: 100%;
+  width: 100%;
+}
+
 .angular-google-map, .angular-google-map-container {
   height: 100%;
   width: 100%;

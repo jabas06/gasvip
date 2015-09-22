@@ -5,11 +5,11 @@
     "ionic": "driftyco/ionic-bower#1.1.0"
   },
   "dependencies": {
-    "angularfire": "~1.1.1",
-    "ngCordova": "~0.1.17-alpha",
-    "geofire": "~3.2.2",
-    "angular-ui-validate": "~1.1.0",
+    "angular-google-maps": "jabas06-angular-google-maps#gasvip",
     "angular-messages": "1.4.3",
-    "angular-google-maps": "~2.2.1"
+    "angular-ui-validate": "~1.1.0",
+    "angularfire": "~1.1.1",
+    "geofire": "~3.2.2",
+    "ngCordova": "~0.1.17-alpha"
   }
 }

@@ -23,24 +23,27 @@
                 </div>
             </div>
         </script>
-        <ui-gmap-google-map center='vm.map.center' zoom='vm.map.zoom' options='vm.mapOptions' pan="true">
-            <ui-gmap-map-control template="my-location-ctrl.tpl.html" position="RIGHT_BOTTOM"
-                                 controller="MapGeneralWidgetsCtrl as mapvm"></ui-gmap-map-control>
+        <div class="full-content" ng-if="vm.mapVisible">
+            <ui-gmap-google-map center='vm.map.center'
+                                zoom='vm.map.zoom' options='vm.mapOptions' pan="true">
+                <ui-gmap-map-control template="my-location-ctrl.tpl.html" position="RIGHT_BOTTOM"
+                                     controller="MapGeneralWidgetsCtrl as mapvm"></ui-gmap-map-control>
 
-            <ui-gmap-map-control template="map-actions-ctrl.tpl.html" position="TOP_LEFT" ng-cloak
-                                 controller="MapStationWidgetsCtrl as mapvm"></ui-gmap-map-control>
+                <ui-gmap-map-control template="map-actions-ctrl.tpl.html" position="TOP_LEFT" ng-cloak
+                                     controller="MapStationWidgetsCtrl as mapvm"></ui-gmap-map-control>
 
-            <ui-gmap-window coords="vm.stationInfoWindow.coords" show="vm.stationInfoWindow.show"
-                            options="vm.stationInfoWindow" closeClick="vm.markerWindowCloseClick()"
-                            templateUrl="vm.stationInfoWindow.templateUrl"
-                            templateParameter="vm.stationInfoWindow.templateParameter" ng-cloak>
-            </ui-gmap-window>
-            <ui-gmap-markers models="vm.stationMarkers" coords="'self'" icon="'icon'"
-                             options="'options'" click="onClick">
-            </ui-gmap-markers>
-            <ui-gmap-marker coords="vm.myLocation" options="vm.myLocationMarker.options"
-                            idkey="vm.myLocationMarker.id" icon="vm.myLocationMarker.icon">
-            </ui-gmap-marker>
-        </ui-gmap-google-map>
+                <ui-gmap-window coords="vm.stationInfoWindow.coords" show="vm.stationInfoWindow.show"
+                                options="vm.stationInfoWindow" closeClick="vm.markerWindowCloseClick()"
+                                templateUrl="vm.stationInfoWindow.templateUrl"
+                                templateParameter="vm.stationInfoWindow.templateParameter" ng-cloak>
+                </ui-gmap-window>
+                <ui-gmap-markers models="vm.stationMarkers" coords="'self'" icon="'icon'"
+                                 options="'options'" click="onClick">
+                </ui-gmap-markers>
+                <ui-gmap-marker coords="vm.myLocation" options="vm.myLocationMarker.options"
+                                idkey="vm.myLocationMarker.id" icon="vm.myLocationMarker.icon">
+                </ui-gmap-marker>
+            </ui-gmap-google-map>
+        </div>
     </ion-content>
 </ion-view>
