@@ -1,18 +1,17 @@
 <ion-view view-title="Mi cuenta" class="slide-in-up ">
   <ion-content>
     <div class="list">
-      <label class="item item-input item-stacked-label">
-        <span class="input-label">Nombre</span>
-
-      </label>
-      <div class="card">
-        <div class="item item-text-wrap" ng-bind="vm.profile.name">
+      <div class="list card">
+        <div class="item item-avatar">
+          <img ng-src="{{globalUser.facebook.cachedUserProfile.picture.data.url}}">
+          <h2 ng-bind="vm.profile.name"></h2>
+          <p>Bienvenido</p>
         </div>
       </div>
-      <label class="item item-input item-stacked-label">
-        <span class="input-label">Email</span>
-      </label>
       <div class="card">
+        <div class="item item-divider">
+          Email
+        </div>
         <div class="item item-text-wrap" ng-bind="vm.profile.email">
         </div>
       </div>

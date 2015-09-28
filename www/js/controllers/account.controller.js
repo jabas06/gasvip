@@ -23,7 +23,7 @@ angular.module('starter.controllers')
         }
 
         function init() {
-            $ionicLoading.show({template: 'Cargando perfil...'});
+            $ionicLoading.show();
             profile.$loaded().finally(function() { $ionicLoading.hide(); });
 
             profile.$bindTo($scope, 'vm.profile');

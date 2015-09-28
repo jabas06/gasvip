@@ -2,7 +2,7 @@ angular.module('starter.controllers')
     .controller('MapCtrl', function($rootScope, $scope, $timeout, $log, $window,
                                     $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop, $ionicPopup,
                                     $cordovaGeolocation, $cordovaToast, StationMarker, uiGmapGoogleMapApi,
-                                    Ref, GeofireRef, geoUtils, GeoFire, _, catalogs,
+                                    Ref, GeofireRef, geoUtils, GeoFire, _, catalogs, appConfig,
                                     mapWidgetsChannel, uiGmapIsReady, Auth) {
         var self = this;
 
@@ -399,28 +399,78 @@ angular.module('starter.controllers')
         }
 
         function closeRateStationModal(){
-            self.rateStationModal.remove();
+            self.rateStationModal.hide();
         }
 
         function openRateStationModal(){
-            closeBottomSheet();
 
-            $ionicModal.fromTemplateUrl('rate-station.html', {
-                scope: $scope,
-            }).then(function(modal) {
-                self.rateStationModal = modal;
+            Auth.$requireAuth().then( function(user) {
 
-                self.newStationRating = {
-                    stationId: self.selectedStation.id,
-                    name: self.selectedStation.name,
-                    rating: 0,
-                    whatToImprove: null,
-                    comment: null
-                };
+                Ref.child(getTodayRatingPath(user.uid)).once('value', function (data) {
 
-                self.rateStationModal.show();
+                    var currentRatings = data.val();
+
+                    var ratingNumber = 1;
+                    var ratingUid = Ref.child("ratings").push().key();
+
+                    if (currentRatings != null) {
+                        Object.keys(currentRatings).forEach(function (key) {
+                            var currentKey = parseInt(key);
+
+                            if (!isNaN(currentKey))
+                                ratingNumber = currentKey + 1;
+                        });
+                    }
+
+                    if (1 == 2 && ratingNumber > appConfig.MAX_RATINGS_BY_USER) {
+                        $ionicPopup.alert({
+                            title: '',
+                            template: 'Ya has calificado ' + appConfig.MAX_RATINGS_BY_USER + ' gasolineras el día de hoy. Intenta mañana :)',
+                            okText: 'Aceptar'
+                        });
+                    }
+                    else {
+                        closeBottomSheet();
+
+                        self.newStationRating = {
+                            uid: ratingUid,
+                            ratingNumber: ratingNumber,
+                            stationId: self.selectedStation.id,
+                            name: self.selectedStation.name,
+                            rating: 0,
+                            whatToImprove: null,
+                            comment: null
+                        };
+
+                        if (self.rateStationModal) {
+                            self.rateForm.$setPristine();
+                            self.rateStationModal.show();
+                        }
+                        else {
+                            $ionicModal.fromTemplateUrl('rate-station.html', {
+                                scope: $scope
+                            }).then(function (modal) {
+                                self.rateStationModal = modal;
+                                self.rateStationModal.show();
+                            });
+                        }
+                    }
+                }, function (error) {
+                    $log.log(angular.toJson(error));
+
+                    $cordovaToast.showShortCenter('Ocurrió un error. Intenta nuevamente.');
+                });
+            }, function() {
+                closeRateStationModal();
+                $cordovaToast.showShortCenter('Debes iniciar sesión');
             });
+        }
 
+        function getTodayRatingPath(useruid) {
+            var ratingDateKey = new Date();
+            ratingDateKey.setUTCHours(0,0,0,0);
+
+            return 'ratingsByTime/' + ratingDateKey.getTime() + '/' + useruid;
         }
 
         function submitStationRating(form) {
@@ -434,21 +484,23 @@ angular.module('starter.controllers')
                         noBackdrop: false
                     });
 
-                    var newRatingRef = Ref.child('ratings/' + self.newStationRating.stationId)
-                        .push({
-                            userId: user.uid,
+                    var newRatingRef = Ref.child(getTodayRatingPath(user.uid) + '/' + self.newStationRating.ratingNumber)
+                        .set({
+                            uid: self.newStationRating.uid,
+                            stationId: self.newStationRating.stationId,
                             rating: self.newStationRating.rating,
                             time: Firebase.ServerValue.TIMESTAMP,
                             whatToImprove: self.newStationRating.rating > 3 ? null : self.newStationRating.whatToImprove,
                             comment: self.newStationRating.comment
                         }, function(error) {
 
-                            $ionicLoading.hide();
-
                             if (error) {
                                 $log.log(error);
-                                $cordovaToast.showShortCenter(error);
-                            } else {
+
+                                $ionicLoading.hide();
+                                $cordovaToast.showShortCenter('Ocurrió un error al enviar la calificación. Intenta nuevamente');
+                            }
+                            else {
 
                                 Ref.child('stations/' + self.newStationRating.stationId + '/rating')
                                     .transaction(function(currentRating) {
@@ -457,21 +509,25 @@ angular.module('starter.controllers')
 
                                         currentRating.sum = (currentRating.sum || 0) + self.newStationRating.rating;
                                         currentRating.count = (currentRating.count || 0) + 1;
-                                        currentRating.lastRatingId = newRatingRef.key();
-
+                                        currentRating.ratingNumber = self.newStationRating.ratingNumber;
                                         return currentRating;
                                     }, function(error, committed, snapshot) {
+                                        form.$setPristine();
+                                        closeRateStationModal();
+
+                                        $ionicLoading.hide();
+
                                         if (error || !committed) {
                                             $log.log('Transaction failed. Committed: ' + committed + '. ' + error);
-                                            $cordovaToast.showShortCenter('Se produjo un error al envíar la evaluación');
 
+                                            $cordovaToast.showShortCenter('Lu calificación ha sido guardada y será procesada más tarde');
                                         }
                                         else {
+
                                             stationsInQuery[self.newStationRating.stationId].rating = snapshot.val();                                                   
                                             stationsInQuery[self.newStationRating.stationId].refreshMarkerRating();
 
-                                            form.$setPristine();
-                                            closeRateStationModal();
+                                            $cordovaToast.showShortCenter('La calificacíón se guardó correctamente.');
                                         }
                                     }
                                 );

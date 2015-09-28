@@ -5,7 +5,7 @@
   </ion-header-bar>
   <ion-content>
     <div class="text-center padding"><span ng-bind="vm.newStationRating.name" class="padding station-name"></span></div>
-    <form name="rateForm" novalidate="" ng-submit="vm.submitStationRating(rateForm)" ng-cloak>
+    <form name="vm.rateForm" novalidate="" ng-submit="vm.submitStationRating(vm.rateForm)" ng-cloak>
       <div class="list">
         <div class="item text-center">
           <div>Valorar</div>
@@ -13,7 +13,7 @@
         </div>
 
         <label class="item item-input item-select"
-               ng-class="{ 'has-errors' : rateForm.whatToImprove.$invalid && rateForm.$submitted }"
+               ng-class="{ 'has-errors' : vm.rateForm.whatToImprove.$invalid && vm.rateForm.$submitted }"
                 ng-show="vm.newStationRating.rating > 0 && vm.newStationRating.rating < 4">
           <div class="input-label">
             ¿Qué podemos mejorar?
@@ -24,8 +24,8 @@
                   ui-validate-watch=" 'vm.newStationRating.rating' ">
           </select>
         </label>
-        <div class="error-container" ng-show="rateForm.whatToImprove.$invalid && rateForm.$submitted"
-             ng-messages="rateForm.whatToImprove.$error">
+        <div class="error-container" ng-show="vm.rateForm.whatToImprove.$invalid && vm.rateForm.$submitted"
+             ng-messages="vm.rateForm.whatToImprove.$error">
           <div class="error" ng-message="validator">
             <i class="ion-information-circled"></i>
             Elija una opción
@@ -33,15 +33,15 @@
         </div>
 
         <label class="item item-input"
-               ng-class="{ 'has-errors' : rateForm.comment.$invalid && rateForm.$submitted }">
-          <input type="text" placeholder="Deja un comentario" name="comment" ng-model="vm.newStationRating.comment"
-                 maxlength="200">
+               ng-class="{ 'has-errors' : vm.rateForm.comment.$invalid && vm.rateForm.$submitted }">
+          <textarea type="text" rows="4" placeholder="Deja un comentario" name="comment" ng-model="vm.newStationRating.comment"
+                 maxlength="1000"></textarea>
         </label>
-        <div class="error-container last-error-container" ng-show="rateForm.comment.$invalid && rateForm.$submitted"
-             ng-messages="rateForm.comment.$error">
+        <div class="error-container last-error-container" ng-show="vm.rateForm.comment.$invalid && vm.rateForm.$submitted"
+             ng-messages="vm.rateForm.comment.$error">
           <div class="error" ng-message="maxlength">
             <i class="ion-information-circled"></i>
-            Máximo 200 caracteres
+            Máximo 1000 caracteres
           </div>
         </div>
       </div>

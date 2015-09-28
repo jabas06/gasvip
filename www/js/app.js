@@ -9,6 +9,7 @@ angular.module('starter', [
     'ionic',
     'ngMessages',
     'templates',
+    'starter.config',
     'starter.controllers',
     'starter.services',
     'starter.directives',
@@ -121,8 +122,8 @@ angular.module('starter', [
      * for changes in auth status which might require us to navigate away from a path
      * that we can no longer view.
      */
-    .run(['$rootScope', '$state', '$location', 'Auth', 'SECURED_ROUTES', 'loginRedirectState',
-        function($rootScope, $state, $location, Auth, SECURED_ROUTES, loginRedirectState) {
+    .run(['$rootScope', '$state', '$location', 'Auth', 'SECURED_ROUTES', 'LOGIN_REDIRECT_PATH',
+        function($rootScope, $state, $location, Auth, SECURED_ROUTES, LOGIN_REDIRECT_PATH) {
             // watch for login status changes and redirect if appropriate
             Auth.$onAuth(check);
 
@@ -132,13 +133,13 @@ angular.module('starter', [
                 event.preventDefault();
 
                 if( err === 'AUTH_REQUIRED' ) {
-                    $state.go(loginRedirectState);
+                    $state.go(LOGIN_REDIRECT_PATH);
                 }
             });
 
             function check(user) {
                 if( !user && authRequired($state.current.name) ) {
-                    $state.go(loginRedirectState);
+                    $state.go(LOGIN_REDIRECT_PATH);
                 }
             }
 
@@ -154,9 +155,9 @@ angular.module('starter', [
             $rootScope.globalUser = user;
         });
     }])
-
-    // used for route security
-    .constant('SECURED_ROUTES', {})
+    .constant('$ionicLoadingConfig', {
+        template: '<ion-spinner></ion-spinner>'
+    })
     // lodash
     .constant('_', window._)
     // geofire
