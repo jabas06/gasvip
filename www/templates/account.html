@@ -1,4 +1,8 @@
 <ion-view view-title="Mi cuenta" class="slide-in-up ">
+  <ion-nav-buttons side="secondary">
+    <button class="button button-icon ion-more" ng-click="vm.popover.show($event)">
+    </button>
+  </ion-nav-buttons>
   <ion-content>
     <div class="list">
       <div class="list card">
@@ -16,8 +20,8 @@
         </div>
       </div>
       <div class="padding">
-        <button class="button button-block button-assertive"
-                ng-click="vm.logout()">Cerrar sesión
+        <button class="button button-block button-positive"
+                ng-click="vm.goMap()">Ver mapa
         </button>
       </div>
     </div>
