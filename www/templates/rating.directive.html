@@ -1,4 +1,4 @@
 <span ng-keydown="onKeydown($event)" class="rating">
-    <i ng-repeat="r in range track by $index" ng-click="rate($index + 1)" class="icon" ng-class="$index < value && (r.stateOn || 'ion-ios-star rated') || (r.stateOff || 'ion-ios-star-outline unrated')">
+    <i ng-repeat="r in range track by $index" ng-click="rate($index + 1)" class="icon rating-item" ng-class="$index < value && (r.stateOn || 'ion-ios-star rated') || (r.stateOff || 'ion-ios-star-outline unrated')">
     </i>
 </span>

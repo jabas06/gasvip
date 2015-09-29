@@ -7736,11 +7736,13 @@ a.button {
 .gmap-control:active {
   color: #387ef5 !important; }
 
-.rating i.rated, .rating i.unrated {
-  font-size: 32px;
+.rating .rating-item {
+  font-size: 32px; }
+
+.rating .icon.rated, .rating .icon.unrated {
   color: #11c1f3; }
 
-.rating i.rated {
+.rating .icon.rated {
   text-shadow: 0px 2px 2px #737373; }
 
 .rating .badge {
@@ -7773,7 +7775,14 @@ a.button {
   align-items: center; }
 
 .aligner-item {
-  max-width: 100%; }
+  max-width: 100%;
+  margin: auto; }
+
+.item-note.item-note-left {
+  float: left; }
+
+.item.item-flat {
+  border-color: transparent; }
 
 .station-name {
   font-size: 32px; }

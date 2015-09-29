@@ -5,29 +5,62 @@
     </ion-header-bar>
     <ion-content>
         <div class="row">
-            <div class="col col-25 aligner aligner-center-content">
-                <img ng-s ng-src="{{vm.selectedStation.image}}" class="aligner-item"/>
-            </div>
-            <div class="col col-75">
+            <div class="col ">
                 <div class="list">
-                    <a class="item item-icon-left item-icon-right rating" ng-click="vm.openRateStationModal()"
-                       ng-show="loggedIn">
-                        <i class="icon ion-ios-star rated"></i>
-                        <span class="badge badge-positive" ng-show="vm.selectedStation.ratingValue !== null"
-                              ng-bind="vm.selectedStation.ratingValue | number:1"></span>
-                        <span class="badge badge-positive" ng-show="vm.selectedStation.ratingValue === null">
-                            sin evaluar
-                        </span>
-                        <span class="item-note">
-                            Evaluar
-                        </span>
-                        <i class="icon ion-android-arrow-forward"></i>
-                    </a>
-                    <a class="item  item-icon-right" ng-click="vm.calculateRoute()">
-                        <span class="item-note">
+                    <a class="item item-icon-left item-flat" ng-click="vm.calculateRoute()">
+                        <span class="item-note item-note-left">
                             Cómo llegar
                         </span>
                         <i class="icon ion-android-navigate"></i>
+                    </a>
+                    <a class="item item-icon-left item-flat" ng-click="vm.showProfecoInfo()">
+                        <span class="item-note item-note-left">
+                            Profeco
+                        </span>
+                        <i class="icon ion-speedometer"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col col-20" style="min-width: 75px;">
+                <div class="list">
+
+                    <div class="item item-icon-left item-flat rating" ng-show="vm.selectedStation.ratingValue !== null"
+                         style="padding: 5px 0 5px 29px;">
+                        <span class="item-note item-note-left badge badge-positive"
+                              ng-bind="vm.selectedStation.ratingValue | number:1">
+                        </span>
+                        <i class="icon ion-ios-star rated" style="left: 0;font-size: 28px;"></i>
+                    </div>
+                    <div class="item item-icon-left item-flat rating" ng-show="vm.selectedStation.ratingValue === null"
+                         style="padding: 5px 0">
+                        <span class="item-note item-note-left badge badge-positive"
+                              style="text-align: center;width: 100%; font-size: 12px; padding: 3px 0px;">
+                            sin evaluar
+                        </span>
+                    </div>
+
+                    <div class="item item-flat item-image">
+                        <img ng-src="{{vm.selectedStation.image}}"/>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col ">
+                <div class="list">
+                    <a class="item item-icon-right item-flat rating" ng-click="vm.openRateStationModal()"
+                       ng-show="loggedIn">
+                        <span class="item-note">
+                            Evaluar
+                        </span>
+                        <i class="icon ion-android-checkmark-circle"></i>
+                    </a>
+                    <a class="item item-icon-right item-flat rating" ng-click="vm.shareStation()"
+                       ng-show="loggedIn">
+                        <span class="item-note">
+                            Recomendar
+                        </span>
+                        <i class="icon ion-android-share-alt"></i>
                     </a>
                 </div>
 

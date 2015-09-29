@@ -129,7 +129,8 @@ angular.module('starter.controllers')
                     disableBack: true
                 });
 
-                $state.go('app.account');
+                $ionicHistory.clearCache().then(function(){ $state.go('app.account'); });
+
             });
         }
 

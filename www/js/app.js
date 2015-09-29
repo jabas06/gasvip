@@ -58,6 +58,16 @@ angular.module('starter', [
             SECURED_ROUTES[state] = true;
             return $stateProvider;
         };
+
+        $stateProvider.waitForAuthState = function(state, route) {
+            route.resolve = route.resolve || {};
+            route.resolve.user = ['Auth', function(Auth) {
+                return Auth.$waitForAuth();
+            }];
+            $stateProvider.state(state, route);
+            return $stateProvider;
+        };
+
     }])
     .config(function($stateProvider, $urlRouterProvider) {
 
@@ -74,7 +84,7 @@ angular.module('starter', [
                 templateUrl: 'menu.html'
             })
 
-            .state('app.map', {
+            .waitForAuthState('app.map', {
                 url: '/map',
                 views: {
                     'menuContent': {
@@ -156,7 +166,8 @@ angular.module('starter', [
         });
     }])
     .constant('$ionicLoadingConfig', {
-        template: '<ion-spinner></ion-spinner>'
+        template: '<ion-spinner></ion-spinner>',
+        noBackdrop: true
     })
     // lodash
     .constant('_', window._)

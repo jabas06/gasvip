@@ -1,16 +1,16 @@
 angular.module('starter.controllers')
-    .controller('MapCtrl', function($rootScope, $scope, $timeout, $log, $window,
+    .controller('MapCtrl', function($rootScope, $scope, $timeout, $log, $window, $state,
                                     $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop, $ionicPopup,
                                     $cordovaGeolocation, $cordovaToast, StationMarker, uiGmapGoogleMapApi,
                                     Ref, GeofireRef, geoUtils, GeoFire, _, catalogs, appConfig,
-                                    mapWidgetsChannel, uiGmapIsReady, Auth) {
+                                    mapWidgetsChannel, uiGmapIsReady, Auth, user) {
         var self = this;
 
         var directionsService = null;
         var directionsDisplay = null;
 
         // Query radius
-        var radiusInKm = 10;
+        var radiusInKm = 12;
         var geoQuery = null;
 
         // Keep track of all of the stations currently within the query
@@ -89,11 +89,13 @@ angular.module('starter.controllers')
         self.openRateStationModal = openRateStationModal;
 
         self.calculateRoute = calculateRoute;
+        self.showProfecoInfo = showProfecoInfo;
 
         self.displayStationMapActions = false;
 
         self.submitStationRating = submitStationRating;
         self.whatToImproveIsValid = whatToImproveIsValid;
+
 
         init();
 
@@ -126,9 +128,12 @@ angular.module('starter.controllers')
 
         function retrieveStations (latitude, longitude, radiusKm) {
 
-            $log.log('retrieve from:' + latitude + ',' + longitude);
-
             if (!geoQuery) {
+
+                $ionicLoading.show({
+                    template: '<ion-spinner></ion-spinner> Buscando gasolineras'
+                });
+
                 geoQuery = GeofireRef.query({
                     center: [latitude, longitude],
                     radius: radiusInKm
@@ -138,13 +143,9 @@ angular.module('starter.controllers')
                 geoQuery.on("ready", onGeoQueryReady);
             }
             // Only reload stations if the previous location is 1 km from the current location
-            // or if there are no station on the map
             else {
-                $log.log('diatancia: ' + GeoFire.distance(geoQuery.center(), [latitude, longitude]));
 
                 if (GeoFire.distance(geoQuery.center(), [latitude, longitude]) > 1) {
-
-                    $log.log('updating geoquery');
 
                     geoQuery.updateCriteria({
                         center: [latitude, longitude],
@@ -171,7 +172,7 @@ angular.module('starter.controllers')
             // Set, add it to the map
             if (station !== null) {
 
-                var marker = new StationMarker(station, dataSnapshot.key(), stationMarkerClickClosure);
+                var marker = new StationMarker(station, dataSnapshot.key(), stationMarkerClickClosure, user ? true : false);
 
                 // Add the station to the list of stations in the query
                 stationsInQuery[dataSnapshot.key()] = marker;
@@ -195,6 +196,7 @@ angular.module('starter.controllers')
         }
 
         function onGeoQueryReady() {
+            $ionicLoading.hide();
 
             if (Object.keys(stationsInQuery).length > 0) {
 
@@ -213,8 +215,6 @@ angular.module('starter.controllers')
                     calculateRoute();
 
                     findingNearestStation = false;
-
-                    $ionicLoading.hide();
                 }
                 else if (navigating === false) {
                     fitBoundsToNearestStations();
@@ -278,12 +278,10 @@ angular.module('starter.controllers')
 
         function findNearestStation() {
 
-            if (findingNearestStation === false) {
-                $ionicLoading.show({
-                    template: '<ion-spinner></ion-spinner><div>Buscando</div>',
-                    noBackdrop: false
-                });
-            }
+            $ionicLoading.show({
+                template: '<ion-spinner></ion-spinner><div>Buscando</div>',
+                noBackdrop: false
+            });
 
             findingNearestStation = true;
 
@@ -345,6 +343,31 @@ angular.module('starter.controllers')
             );
         }
 
+        function showProfecoInfo() {
+            // An elaborate, custom popup
+            var myPopup = $ionicPopup.show({
+                templateUrl: 'profeco-info.html',
+                title: 'Inspección de Profeco',
+                subTitle: '',
+                scope: $scope,
+                buttons: [
+                    { text: 'Cancel' },
+                    {
+                        text: '<b>Save</b>',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            if (!$scope.data.wifi) {
+                                //don't allow the user to close unless he enters wifi password
+                                e.preventDefault();
+                            } else {
+                                return $scope.data.wifi;
+                            }
+                        }
+                    }
+                ]
+            });
+        }
+
         function onlyShowSelectedStation() {
             angular.forEach(stationMarkers, function (marker) {
                 if (self.selectedStation.id !== marker.id) {
@@ -381,17 +404,44 @@ angular.module('starter.controllers')
         }
 
         function nearestGreenStationRoute() {
-            var greenStation = _.chain(stationsInQuery)
-                .filter(function (station) {
-                    return station.ratingValue >= 4;
-                })
-                .sortBy(function (station) {
-                    return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude]);
-                })
-                .first().value();
 
-            self.selectedStation = greenStation;
-            calculateRoute();
+            if (user) {
+            //Auth.$requireAuth().then( function(user) {
+                var greenStation = _.chain(stationsInQuery)
+                    .filter(function (station) {
+                        return station.ratingValue >= 4;
+                    })
+                    .sortBy(function (station) {
+                        return GeoFire.distance([self.myLocation.latitude, self.myLocation.longitude], [station.latitude, station.longitude]);
+                    })
+                    .first().value();
+
+                if (greenStation) {
+                    self.selectedStation = greenStation;
+                    calculateRoute();
+                }
+                else {
+                    $ionicPopup.alert({
+                        title: 'Sin resultados',
+                        template: 'No hemos encontrado una gasolinera VIP cercana.',
+                        okText: 'Aceptar'
+                    });
+                }
+            }//, function() {
+            else {
+                popup = $ionicPopup.alert({
+                    title: '',
+                    template: 'Inicia sesión para conocer las mejores gasolineras del país!',
+                    //cancelText: 'Cancelar',
+                    okText: 'Iniciar sesión'
+                });
+                popup.then(function (res) {
+                    if (res) {
+                        $state.go('app.login');
+                    }
+                });
+            }
+            // );
         }
 
         function closeBottomSheet(){
@@ -404,7 +454,8 @@ angular.module('starter.controllers')
 
         function openRateStationModal(){
 
-            Auth.$requireAuth().then( function(user) {
+            if (user) {
+            //Auth.$requireAuth().then( function(user) {
 
                 Ref.child(getTodayRatingPath(user.uid)).once('value', function (data) {
 
@@ -412,20 +463,32 @@ angular.module('starter.controllers')
 
                     var ratingNumber = 1;
                     var ratingUid = Ref.child("ratings").push().key();
+                    var alreadyRatedStation = false;
 
-                    if (currentRatings != null) {
+                    if (currentRatings !== null) {
                         Object.keys(currentRatings).forEach(function (key) {
                             var currentKey = parseInt(key);
 
-                            if (!isNaN(currentKey))
+                            if (!isNaN(currentKey)) {
                                 ratingNumber = currentKey + 1;
+
+                                if (currentRatings[currentKey].stationId === self.selectedStation.id)
+                                    alreadyRatedStation = true;
+                            }
                         });
                     }
 
-                    if (1 == 2 && ratingNumber > appConfig.MAX_RATINGS_BY_USER) {
+                    if (ratingNumber > appConfig.MAX_RATINGS_BY_USER) {
                         $ionicPopup.alert({
                             title: '',
                             template: 'Ya has calificado ' + appConfig.MAX_RATINGS_BY_USER + ' gasolineras el día de hoy. Intenta mañana :)',
+                            okText: 'Aceptar'
+                        });
+                    }
+                    else if (alreadyRatedStation === true) {
+                        $ionicPopup.alert({
+                            title: '',
+                            template: 'Ya has calificado a esta gasolinera el día de hoy. Intenta mañana :)',
                             okText: 'Aceptar'
                         });
                     }
@@ -460,10 +523,11 @@ angular.module('starter.controllers')
 
                     $cordovaToast.showShortCenter('Ocurrió un error. Intenta nuevamente.');
                 });
-            }, function() {
+            }
+            else {//, function() {
                 closeRateStationModal();
                 $cordovaToast.showShortCenter('Debes iniciar sesión');
-            });
+            }//);
         }
 
         function getTodayRatingPath(useruid) {
@@ -477,7 +541,8 @@ angular.module('starter.controllers')
 
             if (form.$valid) {
 
-                Auth.$requireAuth().then( function(user) {
+                if (user) {
+                //Auth.$requireAuth().then( function(user) {
 
                     $ionicLoading.show({
                         template: '<ion-spinner></ion-spinner><div>Enviando...</div>',
@@ -533,10 +598,11 @@ angular.module('starter.controllers')
                                 );
                             }
                         });
-                }, function() {
+                }//, function() {
+                else {
                     closeRateStationModal();
                     $cordovaToast.showShortCenter('Debes iniciar sesión');
-                });
+                }//);
             }
         }
 
@@ -562,7 +628,7 @@ angular.module('starter.controllers')
                 }
 
                 watchLocation = $cordovaGeolocation.watchPosition(geolocationOptions);
-                $log.log('before then:'+ angular.toJson(watchLocation));
+
                 watchLocation.then(
                     null,
                     function(error) {
@@ -576,34 +642,41 @@ angular.module('starter.controllers')
                         }
                         else {
 
-                            var popup;
-
                             if (startingView === true) //&& error.code === error.PERMISSION_DENIED || error.code === error.POSITION_UNAVAILABLE )
                             {
-                                if (ionic.Platform.isAndroid() === true) {
-                                    popup = $ionicPopup.alert({
-                                        title: 'Servicios de ubicación desactivados',
-                                        template: 'Habilitar servicios de ubicación.',
-                                        cancelText: 'Cancelar',
-                                        okText: 'Habilitar'
-                                    });
-                                    popup.then(function (res) {
-                                        $log.log(angular.toJson(res));
-                                        if (res) {
-                                            cordova.plugins.diagnostic.switchToLocationSettings();
-                                        }
-                                    });
-                                }
-                                else {
-                                    popup = $ionicPopup.alert({
-                                        title: 'Servicios de ubicación desactivados',
-                                        template: 'Habilita la localización de tu dispositvo',
-                                        okText: 'Aceptar'
-                                    });
+                                if (!self.locationPopup) {
+                                    if (ionic.Platform.isAndroid() === true) {
+                                        self.locationPopup = $ionicPopup.confirm({
+                                            title: 'Servicios de ubicación desactivados',
+                                            template: 'Habilitar servicios de ubicación.',
+                                            cancelText: 'Cancelar',
+                                            okText: 'Habilitar'
+                                        });
+                                        self.locationPopup.then(function (res) {
+
+                                            self.locationPopup = null;
+
+                                            if (res) {
+                                                cordova.plugins.diagnostic.switchToLocationSettings();
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        self.locationPopup = $ionicPopup.alert({
+                                            title: 'Servicios de ubicación desactivados',
+                                            template: 'Habilita la localización de tu dispositvo',
+                                            okText: 'Aceptar'
+                                        });
+
+                                        self.locationPopup.then(function (res) {
+                                            self.locationPopup = null;
+                                        });
+                                    }
                                 }
                             }
                             else {
-                                $cordovaToast.showShortCenter('No pudimos determinar tu ubicación. Valida la configuración de tu dispositivo');
+                                if (!self.locationPopup)
+                                    $cordovaToast.showShortCenter('No pudimos determinar tu ubicación. Valida la configuración de tu dispositivo');
                             }
 
                             startingView = false;
@@ -783,15 +856,13 @@ angular.module('starter.controllers')
     .controller('MapStationWidgetsCtrl', function($scope, $log, mapWidgetsChannel) {
         var self = this;
 
-        $log.log('--->>> MapStationWidgetsCtrl');
-
         self.nearestStation = { id: "" };
 
         self.showNormalActions = true;
         self.showBottomSheetActions = false;
         self.showNavigationModelActions = false;
 
-        self.showNearestGreenStationAction = false;
+        //self.showNearestGreenStationAction = false;
 
         self.nearestGreenStationRoute = function (){
             mapWidgetsChannel.invoke('nearestGreenStationRoute');
@@ -815,7 +886,7 @@ angular.module('starter.controllers')
         });
 
         $scope.$on('green-station-entered', function(event) {
-            self.showNearestGreenStationAction = true;
+            //self.showNearestGreenStationAction = true;
         });
 
         $scope.$on('route-displayed', function(event) {

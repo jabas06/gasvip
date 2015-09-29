@@ -45,12 +45,15 @@ $royal:                           #070715 !default;
   color: $positive !important;
 }
 
-.rating i.rated, .rating i.unrated {
+.rating .rating-item {
   font-size: 32px;
+}
+
+.rating .icon.rated, .rating .icon.unrated {
   color: $calm;
 }
 
-.rating i.rated,
+.rating .icon.rated,
 {
   text-shadow: 0px 2px 2px #737373;
 }
@@ -93,6 +96,15 @@ $royal:                           #070715 !default;
 
 .aligner-item {
   max-width: 100%;
+  margin: auto;
+}
+
+.item-note.item-note-left {
+  float: left;
+}
+
+.item.item-flat {
+  border-color: transparent;
 }
 
 .station-name {

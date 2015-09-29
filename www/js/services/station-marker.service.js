@@ -1,7 +1,7 @@
 angular.module('starter.services')
     .factory('StationMarker',  function(){
 
-        return function StationMarker(station, key, stationMarkerClickClosure){
+        return function StationMarker(station, key, stationMarkerClickClosure, isUserLogguedIn){
 
             var self = this;
 
@@ -27,8 +27,8 @@ angular.module('starter.services')
 
             function refreshMarkerRating() {
                 self.ratingValue = getRatingValue();
-                self.icon = self.ratingValue >= 4 ? 'img/green-pin.png' : 'img/gray-pin.png';
-                self.image = self.ratingValue >= 4 ? 'img/green-station.png' : 'img/gray-station.png';
+                self.icon = self.ratingValue >= 4 && isUserLogguedIn === true ? 'img/green-pin.png' : 'img/gray-pin.png';
+                self.image = self.ratingValue >= 4 && isUserLogguedIn === true? 'img/green-station.png' : 'img/gray-station.png';
             }
 
             function getRatingValue() {
