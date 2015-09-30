@@ -1,6 +1,45 @@
-<input type="text" ng-model="data.wifi">
-<input type="text" ng-model="data.wifi">
-<input type="text" ng-model="data.wifi">
-<input type="text" ng-model="data.wifi">
-<input type="text" ng-model="data.wifi">
-<input type="text" ng-model="data.wifi">
+<div class="card" ng-hide="vm.selectedStation.profeco">
+  <div class="item item-text-wrap">
+    No se ha realizado una inspección a esta gasolinera en los últimos {{vm.selectedStation.profecoExpirationMonths}} meses.
+  </div>
+</div>
+
+<div class="list" ng-show="vm.selectedStation.profeco">
+
+  <div class="item item-divider" ng-show="vm.selectedStation.profeco.gasolinePumps">
+    Mangueras
+  </div>
+
+  <div class="item item-icon-left" ng-show="vm.selectedStation.profeco.auditRefused">
+    <i class="icon ion-sad-outline"></i>
+
+    <span class="item-note">Se negó a ser verficado</span>
+  </div>
+
+  <div class="item item-icon-left" ng-show="vm.selectedStation.profeco.gasolinePumps">
+    <i class="icon ion-paintbucket"></i>
+    Verificadas
+    <span class="badge badge-calm" ng-bind="vm.selectedStation.profeco.gasolinePumps"></span>
+  </div>
+
+  <div class="item item-icon-left" ng-show="vm.selectedStation.profeco.gasolinePumps">
+    <i class="icon ion-paintbucket"></i>
+    Inmovilizadas
+    <span class="badge"
+          ng-class="{'badge-assertive': vm.selectedStation.profeco.immobilizedPumps > 0, 'badge-balanced': vm.selectedStation.profeco.immobilizedPumps === 0}"
+          ng-bind="vm.selectedStation.profeco.immobilizedPumps"></span>
+  </div>
+
+
+  <div class="item item-divider" >
+    Fecha de inspección
+  </div>
+
+  <div class="item item-icon-left" >
+    <i class="icon ion-android-calendar"></i>
+
+    {{vm.selectedStation.profeco.auditDate | date:'yyyy-MM-dd'}}
+  </div>
+
+
+</div>

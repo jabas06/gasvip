@@ -11,6 +11,7 @@ angular.module('starter.services')
             self.name = station.name;
             self.rating = station.rating;
             self.profeco = station.profeco;
+            self.profecoExpirationMonths = station.profecoExpirationMonths;
 
             self.options= {
                 visible: true
@@ -32,17 +33,27 @@ angular.module('starter.services')
             }
 
             function getRatingValue() {
+
                 var usersRating = self.rating ? self.rating.sum / self.rating.count : null;
                 var profecoScore = self.profeco ? self.profeco.score : null;
-                var totalRating;
+                var totalRating
 
-                if (usersRating && profecoScore) {
+                if (profecoScore !== null) {
+                    // Clear profeco score if its 6 months old
+                    if ((Date.now() - self.profeco.auditDate) > (86400000*30)*self.profecoExpirationMonths) {
+                        profecoScore = null;
+                        self.profeco = null;
+                    }
+                }
+
+
+                if (usersRating !== null && profecoScore !== null) {
                     totalRating = usersRating * profecoScore;
                 }
-                else if (usersRating) {
+                else if (usersRating !== null) {
                     totalRating = usersRating;
                 }
-                else if (profecoScore) {
+                else if (profecoScore !== null) {
                     totalRating = (5 * profecoScore);
                 }
                 else {

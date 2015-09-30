@@ -32,6 +32,22 @@ angular.module('starter.controllers')
 
         var lastNetworkStatus = '';
 
+        var memberBenefitsPopup = {
+            templateUrl: 'member-benefits.html',
+            title: 'Hazte miembro. Es gratis!',
+            subTitle: '',
+            scope: $scope,
+            buttons: [
+                {
+                    text: '<b>Iniciar sesión</b>',
+                    type: 'button-balanced',
+                    onTap: function(e) {
+                        $state.go('app.login');
+                    }
+                }
+            ]
+        }
+
         self.mapVisible = true;
         
         self.myLocation = {};
@@ -344,28 +360,23 @@ angular.module('starter.controllers')
         }
 
         function showProfecoInfo() {
-            // An elaborate, custom popup
-            var myPopup = $ionicPopup.show({
-                templateUrl: 'profeco-info.html',
-                title: 'Inspección de Profeco',
-                subTitle: '',
-                scope: $scope,
-                buttons: [
-                    { text: 'Cancel' },
-                    {
-                        text: '<b>Save</b>',
-                        type: 'button-positive',
-                        onTap: function(e) {
-                            if (!$scope.data.wifi) {
-                                //don't allow the user to close unless he enters wifi password
-                                e.preventDefault();
-                            } else {
-                                return $scope.data.wifi;
-                            }
-                        }
-                    }
-                ]
-            });
+
+            if (user) {
+
+                $ionicPopup.show({
+                    templateUrl: 'profeco-info.html',
+                    title: 'Inspección de Profeco',
+                    subTitle: '',
+                    scope: $scope,
+                    buttons: [
+                        {text: 'Cerrar'}
+                    ]
+                });
+            }
+            else {
+
+                $ionicPopup.show(memberBenefitsPopup);
+            }
         }
 
         function onlyShowSelectedStation() {
@@ -429,7 +440,7 @@ angular.module('starter.controllers')
                 }
             }//, function() {
             else {
-                popup = $ionicPopup.alert({
+               /* popup = $ionicPopup.alert({
                     title: '',
                     template: 'Inicia sesión para conocer las mejores gasolineras del país!',
                     //cancelText: 'Cancelar',
@@ -439,7 +450,9 @@ angular.module('starter.controllers')
                     if (res) {
                         $state.go('app.login');
                     }
-                });
+                });*/
+
+                $ionicPopup.show(memberBenefitsPopup);
             }
             // );
         }
@@ -525,8 +538,7 @@ angular.module('starter.controllers')
                 });
             }
             else {//, function() {
-                closeRateStationModal();
-                $cordovaToast.showShortCenter('Debes iniciar sesión');
+                $ionicPopup.show(memberBenefitsPopup);
             }//);
         }
 

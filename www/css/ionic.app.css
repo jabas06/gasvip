@@ -7812,3 +7812,6 @@ a.button {
 
 .no-errors {
   border-bottom: 3px solid green; }
+
+.no-padding {
+  padding: 0px; }
