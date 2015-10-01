@@ -36,7 +36,7 @@ angular.module('starter.services')
 
                 var usersRating = self.rating ? self.rating.sum / self.rating.count : null;
                 var profecoScore = self.profeco ? self.profeco.score : null;
-                var totalRating
+                var totalRating;
 
                 if (profecoScore !== null) {
                     // Clear profeco score if its 6 months old

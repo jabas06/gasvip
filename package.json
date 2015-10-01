@@ -36,7 +36,8 @@
       "id": "nl.x-services.plugins.toast"
     },
     "cordova.plugins.diagnostic",
-    "cordova-plugin-network-information"
+    "cordova-plugin-network-information",
+    "cordova-plugin-x-socialsharing"
   ],
   "cordovaPlatforms": [
     "android",

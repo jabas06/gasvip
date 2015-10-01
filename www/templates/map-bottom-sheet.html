@@ -5,7 +5,7 @@
     </ion-header-bar>
     <ion-content>
         <div class="row no-padding">
-            <div class="col ">
+            <div class="col no-padding">
                 <div class="list">
                     <a class="item item-icon-left item-flat" ng-click="vm.calculateRoute()">
                         <span class="item-note item-note-left">
@@ -21,7 +21,7 @@
                     </a>
                 </div>
             </div>
-            <div class="col col-20" style="min-width: 75px;">
+            <div class="col col-20" style="min-width: 78px;">
                 <div class="list">
 
                     <div class="item item-icon-left item-flat rating" ng-show="loggedIn && vm.selectedStation.ratingValue !== null"
@@ -49,7 +49,7 @@
                 </div>
             </div>
 
-            <div class="col ">
+            <div class="col no-padding">
                 <div class="list">
                     <a class="item item-icon-right item-flat rating" ng-click="vm.openRateStationModal()">
                         <span class="item-note">

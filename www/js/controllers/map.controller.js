@@ -3,7 +3,7 @@ angular.module('starter.controllers')
                                     $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop, $ionicPopup,
                                     $cordovaGeolocation, $cordovaToast, StationMarker, uiGmapGoogleMapApi,
                                     Ref, GeofireRef, geoUtils, GeoFire, _, catalogs, appConfig,
-                                    mapWidgetsChannel, uiGmapIsReady, Auth, user) {
+                                    mapWidgetsChannel, uiGmapIsReady, Auth, user, $cordovaSocialSharing) {
         var self = this;
 
         var directionsService = null;
@@ -46,7 +46,7 @@ angular.module('starter.controllers')
                     }
                 }
             ]
-        }
+        };
 
         self.mapVisible = true;
         
@@ -106,6 +106,7 @@ angular.module('starter.controllers')
 
         self.calculateRoute = calculateRoute;
         self.showProfecoInfo = showProfecoInfo;
+        self.shareStation = shareStation;
 
         self.displayStationMapActions = false;
 
@@ -377,6 +378,24 @@ angular.module('starter.controllers')
 
                 $ionicPopup.show(memberBenefitsPopup);
             }
+        }
+
+        function shareStation() {
+
+            var uri = "geo:" + self.selectedStation.latitude + "," +
+                self.selectedStation.longitude + "?q=" + self.selectedStation.latitude +
+                "," + self.selectedStation.longitude;
+
+            uri = '"http://maps.google.com/maps?z=12&q=loc:'+ self.selectedStation.latitude + ',' + self.selectedStation.longitude + '"';
+
+            $cordovaSocialSharing
+                .share('Te recomiendo esta gasolinera! ' + uri + '. Puedes encontrar más opciones en GasVIP. ', null, null, '"gasvip.com.mx"') // Share via native share sheet
+                .then(function(result) {
+                    $log.log(angular.toJson('share: ' + result));
+                }, function(err) {
+                    $log.log(angular.toJson(err));
+                    $cordovaToast.showShortCenter('No se compartió el contenido');
+                });
         }
 
         function onlyShowSelectedStation() {
