@@ -1,7 +1,7 @@
 angular.module('starter.controllers')
     .controller('MapCtrl', function($rootScope, $scope, $timeout, $log, $window, $state,
                                     $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop, $ionicPopup,
-                                    $cordovaGeolocation, $cordovaToast, StationMarker, uiGmapGoogleMapApi,
+                                    geolocationManager, $cordovaToast, StationMarker, uiGmapGoogleMapApi,
                                     Ref, GeofireRef, geoUtils, GeoFire, _, catalogs, appConfig,
                                     mapWidgetsChannel, uiGmapIsReady, Auth, user, $cordovaSocialSharing) {
         var self = this;
@@ -17,23 +17,17 @@ angular.module('starter.controllers')
         var stationsInQuery = {};
         var stationMarkers = [];
 
-        var watchLocation = null;
-        var geolocationSwitchModeAttempted = false;
-
         var findingNearestStation = false;
         var navigating = false;
-        var startingView = true;
 
         var previousNavigatinCoords = null;
 
         var findNearestStationPopup = null;
 
-        var geolocationOptions = { maximumAge: 2000, timeout: 15000, enableHighAccuracy: true };
-
         var lastNetworkStatus = '';
 
         var memberBenefitsPopup = {
-            templateUrl: 'member-benefits.html',
+            templateUrl: 'templates/member-benefits.html',
             title: 'Hazte miembro. Es gratis!',
             subTitle: '',
             scope: $scope,
@@ -49,7 +43,7 @@ angular.module('starter.controllers')
         };
 
         self.mapVisible = true;
-        
+
         self.myLocation = {};
         self.myLocationMarker = {
             id: '1',
@@ -140,7 +134,7 @@ angular.module('starter.controllers')
                 self.myLocationMarker.options.visible = true;
             }
 
-            startWatchLocation();
+            geolocationManager.startWatchLocation(locationChange);
         }
 
         function retrieveStations (latitude, longitude, radiusKm) {
@@ -173,26 +167,27 @@ angular.module('starter.controllers')
         }
 
         /* Adds new station markers to the map when they enter the query */
-        function onStationEntered(id, location) {
+        function onStationEntered(key, location) {
 
-            stationsInQuery[id] = { latitude: location[0], longitude: location[1]};
+            stationsInQuery[key] = { latitude: location[0], longitude: location[1]};
 
             // Look up the station's data
-            Ref.child('stations').child(id).once('value', onStationDataLoaded);
+            if (user)
+                Ref.child('stations').child(key).once('value', onStationDataLoaded, function(err) {
+                    console.log(err);
+                });
+            else
+                Ref.child('stations').child(key).child('public').once('value', onStationDataLoaded);
         }
 
         function onStationDataLoaded (dataSnapshot) {
 
-            var station = dataSnapshot.val();
+            var marker = new StationMarker(dataSnapshot, stationMarkerClickClosure, user ? true : false);
 
-            // If the station has not already exited this query in the time it took to look up its data in firebase
-            // Set, add it to the map
-            if (station !== null) {
-
-                var marker = new StationMarker(station, dataSnapshot.key(), stationMarkerClickClosure, user ? true : false);
+            if (marker !== null) {
 
                 // Add the station to the list of stations in the query
-                stationsInQuery[dataSnapshot.key()] = marker;
+                stationsInQuery[marker.id] = marker;
 
                 $timeout(function() {
                     stationMarkers.push(marker);
@@ -365,7 +360,7 @@ angular.module('starter.controllers')
             if (user) {
 
                 $ionicPopup.show({
-                    templateUrl: 'profeco-info.html',
+                    templateUrl: 'templates/profeco-info.html',
                     title: 'Inspección de Profeco',
                     subTitle: '',
                     scope: $scope,
@@ -388,24 +383,23 @@ angular.module('starter.controllers')
 
             uri = '"http://maps.google.com/maps?z=12&q=loc:'+ self.selectedStation.latitude + ',' + self.selectedStation.longitude + '"';
 
+            $ionicLoading.show();
             $cordovaSocialSharing
-                .share('Te recomiendo esta gasolinera! ' + uri + '. Puedes encontrar más opciones en GasVIP. ', null, null, '"gasvip.com.mx"') // Share via native share sheet
+                //.share('Te recomiendo esta gasolinera! ' + uri + '. Puedes encontrar más opciones en GasVIP. ', null, null, '"gasvip.com.mx"') // Share via native share sheet
+                .share('Te recomiendo esta app para que encuentres las mejores gasolineras en tu zona.', null, null, 'gasvip.com.mx') // Share via native share sheet
                 .then(function(result) {
                     $log.log(angular.toJson('share: ' + result));
                 }, function(err) {
                     $log.log(angular.toJson(err));
                     $cordovaToast.showShortCenter('No se compartió el contenido');
+                }).finally(function() {
+                    $ionicLoading.hide();
                 });
         }
 
         function onlyShowSelectedStation() {
             angular.forEach(stationMarkers, function (marker) {
-                if (self.selectedStation.id !== marker.id) {
-                    marker.options.visible = false;
-                }
-                else {
-                    marker.options.visible = true;
-                }
+                marker.options.visible = self.selectedStation.id === marker.id;
             });
         }
 
@@ -434,7 +428,6 @@ angular.module('starter.controllers')
         }
 
         function nearestGreenStationRoute() {
-
             if (user) {
             //Auth.$requireAuth().then( function(user) {
                 var greenStation = _.chain(stationsInQuery)
@@ -459,18 +452,6 @@ angular.module('starter.controllers')
                 }
             }//, function() {
             else {
-               /* popup = $ionicPopup.alert({
-                    title: '',
-                    template: 'Inicia sesión para conocer las mejores gasolineras del país!',
-                    //cancelText: 'Cancelar',
-                    okText: 'Iniciar sesión'
-                });
-                popup.then(function (res) {
-                    if (res) {
-                        $state.go('app.login');
-                    }
-                });*/
-
                 $ionicPopup.show(memberBenefitsPopup);
             }
             // );
@@ -542,7 +523,7 @@ angular.module('starter.controllers')
                             self.rateStationModal.show();
                         }
                         else {
-                            $ionicModal.fromTemplateUrl('rate-station.html', {
+                            $ionicModal.fromTemplateUrl('templates/rate-station.html', {
                                 scope: $scope
                             }).then(function (modal) {
                                 self.rateStationModal = modal;
@@ -598,7 +579,7 @@ angular.module('starter.controllers')
                             }
                             else {
 
-                                Ref.child('stations/' + self.newStationRating.stationId + '/rating')
+                                Ref.child('stations/' + self.newStationRating.stationId + '/private' + '/rating')
                                     .transaction(function(currentRating) {
 
                                         currentRating = currentRating || {};
@@ -620,7 +601,7 @@ angular.module('starter.controllers')
                                         }
                                         else {
 
-                                            stationsInQuery[self.newStationRating.stationId].rating = snapshot.val();                                                   
+                                            stationsInQuery[self.newStationRating.stationId].rating = snapshot.val();
                                             stationsInQuery[self.newStationRating.stationId].refreshMarkerRating();
 
                                             $cordovaToast.showShortCenter('La calificacíón se guardó correctamente.');
@@ -652,100 +633,6 @@ angular.module('starter.controllers')
             });
         }
 
-        function startWatchLocation() {
-            $ionicPlatform.ready(function() {
-                if (watchLocation !== null) {
-                    $cordovaGeolocation.clearWatch(watchLocation.watchID);
-                }
-
-                watchLocation = $cordovaGeolocation.watchPosition(geolocationOptions);
-
-                watchLocation.then(
-                    null,
-                    function(error) {
-
-                        if(geolocationSwitchModeAttempted === false) {
-
-                            geolocationOptions = { maximumAge: 2000, timeout: 4000, enableHighAccuracy: false };
-
-                            startWatchLocation();
-                            geolocationSwitchModeAttempted = true;
-                        }
-                        else {
-
-                            if (startingView === true) //&& error.code === error.PERMISSION_DENIED || error.code === error.POSITION_UNAVAILABLE )
-                            {
-                                if (!self.locationPopup) {
-                                    if (ionic.Platform.isAndroid() === true) {
-                                        self.locationPopup = $ionicPopup.confirm({
-                                            title: 'Servicios de ubicación desactivados',
-                                            template: 'Habilitar servicios de ubicación.',
-                                            cancelText: 'Cancelar',
-                                            okText: 'Habilitar'
-                                        });
-                                        self.locationPopup.then(function (res) {
-
-                                            self.locationPopup = null;
-
-                                            if (res) {
-                                                cordova.plugins.diagnostic.switchToLocationSettings();
-                                            }
-                                        });
-                                    }
-                                    else {
-                                        self.locationPopup = $ionicPopup.alert({
-                                            title: 'Servicios de ubicación desactivados',
-                                            template: 'Habilita la localización de tu dispositvo',
-                                            okText: 'Aceptar'
-                                        });
-
-                                        self.locationPopup.then(function (res) {
-                                            self.locationPopup = null;
-                                        });
-                                    }
-                                }
-                            }
-                            else {
-                                if (!self.locationPopup)
-                                    $cordovaToast.showShortCenter('No pudimos determinar tu ubicación. Valida la configuración de tu dispositivo');
-                            }
-
-                            startingView = false;
-
-                        }
-
-                        $log.log('geoerror: ' + angular.toJson(error));
-                    },
-                    function(position) {
-
-                        // $scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
-                        $timeout(function() {
-
-                            var coords = [position.coords.latitude, position.coords.longitude];
-
-                            self.myLocation.latitude = coords[0];
-                            self.myLocation.longitude = coords[1];
-
-                            if (navigating === true) {
-                                // Adjust the bounds if the device moved 20 meters
-                                if (previousNavigatinCoords !== null && GeoFire.distance(previousNavigatinCoords, coords) > 0.02) {
-
-                                    previousNavigatinCoords = coords;
-                                    fitBoundsToRoute();
-                                }
-                            }
-                            else if (startingView === true) {
-                                centerMap();
-                            }
-
-                            retrieveStations(coords[0], coords[1], radiusInKm);
-
-                            startingView = false;
-                        });
-                    });
-            });
-        }
-
         function enableMap(){
 
             uiGmapIsReady.promise(1).then(function(instances) {
@@ -766,7 +653,7 @@ angular.module('starter.controllers')
                 noBackdrop: true
             });
 
-            clearLocationWatch();
+            geolocationManager.clearLocationWatch();
         }
 
         function recreateMap(){
@@ -812,11 +699,31 @@ angular.module('starter.controllers')
             });
         }
 
-        function clearLocationWatch() {
-            $ionicPlatform.ready(function() {
-                if (watchLocation !== null) {
-                    $cordovaGeolocation.clearWatch(watchLocation.watchID);
+        function locationChange (position) {
+
+            // $scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
+            $timeout(function() {
+
+                var coords = [position.coords.latitude, position.coords.longitude];
+
+                self.myLocation.latitude = coords[0];
+                self.myLocation.longitude = coords[1];
+
+                if (navigating === true) {
+                    // Adjust the bounds if the device moved 20 meters
+                    if (previousNavigatinCoords !== null && GeoFire.distance(previousNavigatinCoords, coords) > 0.02) {
+
+                        previousNavigatinCoords = coords;
+                        fitBoundsToRoute();
+                    }
                 }
+                else if (geolocationManager.isStartingView() === true) {
+                    centerMap();
+                }
+
+                retrieveStations(coords[0], coords[1], radiusInKm);
+
+                geolocationManager.setStartingView(false);
             });
         }
 
@@ -837,31 +744,22 @@ angular.module('starter.controllers')
             });
 
             $scope.$on('$ionicView.beforeEnter', function(e) {
-                $log.log('view before enter');
-                startingView = true;
-
-                geolocationOptions = { maximumAge: 2000, timeout: 15000, enableHighAccuracy: true };
-                geolocationSwitchModeAttempted = false;
+                geolocationManager.reset();
             });
 
             $scope.$on('$ionicView.beforeLeave', function(e) {
-                $log.log('view before leave');
                closeBottomSheet();
             });
 
             $ionicPlatform.on('pause', function(event) {
-                $log.log('pause ');
-
-                clearLocationWatch();
+                geolocationManager.clearLocationWatch();
             });
 
             $ionicPlatform.on('resume', function(event) {
-                $log.log('resume');
-
-                startWatchLocation();
+                geolocationManager.startWatchLocation(locationChange);
             });
 
-            $ionicModal.fromTemplateUrl('map-bottom-sheet.html', {
+            $ionicModal.fromTemplateUrl('templates/map-bottom-sheet.html', {
                 scope: $scope,
                 viewType: 'bottom-sheet',
                 animation: 'slide-in-up'
@@ -869,7 +767,7 @@ angular.module('starter.controllers')
                 self.bottomSheetModal = modal;
             });
 
-            startWatchLocation();
+            geolocationManager.startWatchLocation(locationChange);
 
             mapWidgetsChannel.add('centerOnMyLocation', centerMap);
             mapWidgetsChannel.add('calculateRoute', calculateRoute);

@@ -8,7 +8,6 @@
 angular.module('starter', [
     'ionic',
     'ngMessages',
-    'templates',
     'starter.config',
     'starter.controllers',
     'starter.services',
@@ -26,12 +25,13 @@ angular.module('starter', [
         $ionicPlatform.ready(function() {
             // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
             // for form inputs)
-            if (window.cordova && window.cordova.plugins && window.cordova.plugins.Keyboard) {
+            if (window.cordova && window.cordova.plugins.Keyboard) {
                 cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+                cordova.plugins.Keyboard.disableScroll(true);
             }
             if (window.StatusBar) {
                 // org.apache.cordova.statusbar required
-                StatusBar.styleLightContent();
+                StatusBar.styleDefault();
             }
         });
     })
@@ -81,15 +81,16 @@ angular.module('starter', [
             .state('app', {
                 url: "/app",
                 abstract: true,
-                templateUrl: 'menu.html'
+                templateUrl: 'templates/menu.html'
             })
 
             .waitForAuthState('app.map', {
                 url: '/map',
                 views: {
                     'menuContent': {
-                        templateUrl: 'map.html',
-                        controller: 'MapCtrl as vm'
+                        templateUrl: 'templates/map.html',
+                        controller: 'MapCtrl',
+                        controllerAs: 'vm'
                     }
                 }
             })
@@ -98,8 +99,9 @@ angular.module('starter', [
                 url: '/login',
                 views: {
                     'menuContent': {
-                        templateUrl: 'login.html',
-                        controller: 'LoginCtrl as vm'
+                        templateUrl: 'templates/login.html',
+                        controller: 'LoginCtrl',
+                        controllerAs: 'vm'
                     }
                 }
             })
@@ -108,7 +110,7 @@ angular.module('starter', [
                 url: '/account',
                 views: {
                     'menuContent': {
-                        templateUrl: 'account.html',
+                        templateUrl: 'templates/account.html',
                         controller: 'AccountCtrl'
                     }
                 }
@@ -121,7 +123,7 @@ angular.module('starter', [
     .config(function(uiGmapGoogleMapApiProvider) {
         uiGmapGoogleMapApiProvider.configure({
             key: 'AIzaSyDVhbumpP6UqOTxLYgk5V9aw377JkK3lwI',
-            v: '3.21',
+            v: '3.23',
             libraries: 'places'
         });
     })

@@ -77,7 +77,7 @@ angular.module('starter.directives')
                 onLeave: '&'
             },
             controller: 'RatingController',
-            templateUrl: "rating.directive.html",
+            templateUrl: "templates/rating.directive.html",
             replace: true,
             link: function(scope, element, attrs, ctrls) {
                 var ratingCtrl = ctrls[0], ngModelCtrl = ctrls[1];

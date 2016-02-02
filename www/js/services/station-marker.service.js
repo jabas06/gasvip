@@ -1,17 +1,28 @@
 angular.module('starter.services')
     .factory('StationMarker',  function(){
 
-        return function StationMarker(station, key, stationMarkerClickClosure, isUserLogguedIn){
+        return function StationMarker(dataSnapshot, stationMarkerClickClosure, isUserLogguedIn){
 
             var self = this;
+            var station = dataSnapshot.val();
 
-            self.id = key;
-            self.latitude = station.lat;
-            self.longitude = station.lon;
-            self.name = station.name;
-            self.rating = station.rating;
-            self.profeco = station.profeco;
-            self.profecoExpirationMonths = station.profecoExpirationMonths;
+            if (isUserLogguedIn) {
+                self.id = dataSnapshot.key();
+                self.pemexId = station.public.pemexId;
+                self.latitude = station.public.lat;
+                self.longitude = station.public.lon;
+                self.name = station.public.name;
+                self.profecoExpirationMonths = station.public.profecoExpirationMonths;
+                self.rating = station.private ? station.private.rating : null;
+                self.profeco = station.private ? station.private.profeco : null;
+            }
+            else {
+                self.id = dataSnapshot.ref().parent().key();
+                self.pemexId = station.pemexId;
+                self.latitude = station.lat;
+                self.longitude = station.lon;
+                self.name = station.name;
+            }
 
             self.options= {
                 visible: true
@@ -22,14 +33,15 @@ angular.module('starter.services')
             self.refreshMarkerRating = refreshMarkerRating;
 
             refreshMarkerRating();
+
             // *********************************
             // Internal
             // *********************************
 
             function refreshMarkerRating() {
                 self.ratingValue = getRatingValue();
-                self.icon = self.ratingValue >= 4 && isUserLogguedIn === true ? 'img/green-pin.png' : 'img/gray-pin.png';
-                self.image = self.ratingValue >= 4 && isUserLogguedIn === true? 'img/green-station.png' : 'img/gray-station.png';
+                self.icon = self.ratingValue >= 4? 'img/green-pin.png' : 'img/gray-pin.png';
+                self.image = self.ratingValue >= 4? 'img/green-station.png' : 'img/gray-station.png';
             }
 
             function getRatingValue() {

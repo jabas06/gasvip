@@ -38,7 +38,7 @@ angular.module('starter.controllers')
         }
 
         function init() {
-            $ionicPopover.fromTemplateUrl('account-popover.html', {
+            $ionicPopover.fromTemplateUrl('templates/account-popover.html', {
                 scope: $scope,
             }).then(function(popover) {
                 self.popover = popover;

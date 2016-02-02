@@ -21,7 +21,7 @@ $ionicons-font-path: "../lib/ionic/fonts" !default;
 $royal:                           #070715 !default;
 
 // Include all of Ionic
-@import "../www/lib/ionic/scss/ionic";
+@import "www/lib/ionic/scss/ionic";
 
 // ----
 @import "animations.scss";
@@ -53,7 +53,7 @@ $royal:                           #070715 !default;
   color: $calm;
 }
 
-.rating .icon.rated,
+.rating .icon.rated
 {
   text-shadow: 0px 2px 2px #737373;
 }

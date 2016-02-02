@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="JsBowerSettings">
+    <exe-path>$USER_HOME$/.nvm/versions/node/v4.2.6/bin/bower</exe-path>
+    <config-path />
+  </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
       <profile-state>
@@ -18,9 +22,6 @@
           </State>
           <State>
             <id>JavaScript</id>
-          </State>
-          <State>
-            <id>JsTestDriverJavaScript</id>
           </State>
           <State>
             <id>Naming conventionsJavaScript</id>
@@ -50,7 +51,6 @@
     <ConfirmationsSetting value="0" id="Add" />
     <ConfirmationsSetting value="0" id="Remove" />
   </component>
-  <component name="ProjectRootManager" version="2" />
   <component name="masterDetails">
     <states>
       <state key="ScopeChooserConfigurable.UI">

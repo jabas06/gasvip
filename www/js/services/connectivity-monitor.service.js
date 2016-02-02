@@ -1,5 +1,5 @@
 angular.module('starter.services')
-    .factory('ConnectivityMonitor', function($rootScope, $cordovaNetwork){
+    .factory('ConnectivityMonitor', function($cordovaNetwork){
 
 
         var service = {
