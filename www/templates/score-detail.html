@@ -1,24 +1,69 @@
 <div class="list">
 
-  <div class="item item-icon-left">
-    <i class="icon ion-paintbucket"></i>
+  <div class="item item-divider">
     Usuarios
-    <span class="badge badge-calm" ng-bind="vm.selectedStation.rating.sum / vm.selectedStation.rating.count"></span>
   </div>
 
-  <div class="item item-icon-left">
-    <i class="icon ion-paintbucket"></i>
-    Profeco
-    <span class="badge"
-          ng-bind="vm.selectedStation.profeco.score">
+  <div class="item item-icon-left" ng-show="vm.selectedStation.rating">
+    <i class="icon ion-ios-people"></i>
+    Promedio
+    <span class="badge badge-calm" ng-bind="(vm.selectedStation.rating.sum / vm.selectedStation.rating.count) | number:1"></span>
+  </div>
+    <div class="item" ng-hide="vm.selectedStation.rating">
+    No hay evaluaciones
+  </div>
+
+  <div class="item item-divider">
+    Profeco - Bombas
+  </div>
+
+  <div class="item item-icon-left" ng-show="vm.selectedStation.profeco && !vm.selectedStation.profeco.auditRefused">
+  <i class="icon ion-paintbucket"></i>
+    Aprobadas
+    <span class="badge badge-calm">
+         {{(vm.selectedStation.profeco.score * 100) | number:1}}%
     </span>
   </div>
+  <div class="item" ng-show="vm.selectedStation.profeco && vm.selectedStation.profeco.auditRefused">
+      Se negó a ser verficado 
+    <span class="badge badge-assertive">
+          0
+    </span>
+  </div>
+  <div class="item" ng-hide="vm.selectedStation.profeco">
+    Sin datos
+  </div>
 
-  <div class="item item-icon-left">
-    <i class="icon ion-paintbucket"></i>
+  <div class="item item-divider" ng-show="vm.selectedStation.rating && vm.selectedStation.profeco">
+    Total = Usuarios X Profeco
+   
+  </div>
+  <div class="item" ng-show="vm.selectedStation.rating && vm.selectedStation.profeco">
+    {{(vm.selectedStation.rating.sum / vm.selectedStation.rating.count) | number:1}}
+    X
+    {{(vm.selectedStation.profeco.auditRefused ? 0 : vm.selectedStation.profeco.score*100) | number:1}}%
+    <span class="badge badge-calm"
+          ng-bind="vm.selectedStation.ratingValue | number:1">
+    </span>
+  </div>
+  <div class="item item-divider" ng-show="vm.selectedStation.rating && !vm.selectedStation.profeco">
     Total
-    <span class="badge"
-          ng-bind="vm.selectedStation.ratingValue">
+ 
+  </div>
+  <div class="item" ng-show="vm.selectedStation.rating && !vm.selectedStation.profeco">
+    Solo usuarios
+    <span class="badge badge-calm"
+          ng-bind="vm.selectedStation.ratingValue | number:1">
+    </span>
+  </div>
+  <div class="item item-divider" ng-show="!vm.selectedStation.rating && vm.selectedStation.profeco">
+    Total = Solo Profeco
+   
+  </div>
+  <div class="item" ng-show="!vm.selectedStation.rating && vm.selectedStation.profeco">
+    5 X {{(vm.selectedStation.profeco.auditRefused ? 0 : vm.selectedStation.profeco.score*100) | number:1}}%
+    <span class="badge badge-calm"
+          ng-bind="vm.selectedStation.ratingValue | number:1">
     </span>
   </div>
 

@@ -12,7 +12,7 @@
         <p>{{rating.comment}}</p>
         <rating ng-model="rating.rating" readonly="true"></rating>
       </a>
-      <a class="item item-avatar item-text-wrap" href="#" ng-show="!vm.ratings">
+      <a class="item item-avatar item-text-wrap" href="#" ng-show="vm.ratingsCount === 0">
         <p>Aún no hay opiniones para esta gasolinera.</p>
       </a>
     </div>

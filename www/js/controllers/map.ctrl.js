@@ -556,7 +556,7 @@ angular.module('starter.controllers')
 
         $ionicPopup.show({
           templateUrl: 'templates/score-detail.html',
-          title: 'Cálculo',
+          title: 'Detalle de la calificación',
           subTitle: '',
           scope: $scope,
           buttons: [

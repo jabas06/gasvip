@@ -4,6 +4,7 @@ angular.module('starter.controllers')
 
     vm.station = parameters;
     vm.close = close;
+    vm.ratingsCount = null;
 
     init();
 
@@ -16,6 +17,8 @@ angular.module('starter.controllers')
 
       ratingsService.getRatingsByStation(vm.station.id).then(function(ratings) {
         vm.ratings = ratings;
+        
+        vm.ratingsCount = ratings ? Object.keys(ratings).length : 0;
 
         $ionicLoading.hide();
       }).catch(function () {
