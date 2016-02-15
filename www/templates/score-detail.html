@@ -1,0 +1,25 @@
+<div class="list">
+
+  <div class="item item-icon-left">
+    <i class="icon ion-paintbucket"></i>
+    Usuarios
+    <span class="badge badge-calm" ng-bind="vm.selectedStation.rating.sum / vm.selectedStation.rating.count"></span>
+  </div>
+
+  <div class="item item-icon-left">
+    <i class="icon ion-paintbucket"></i>
+    Profeco
+    <span class="badge"
+          ng-bind="vm.selectedStation.profeco.score">
+    </span>
+  </div>
+
+  <div class="item item-icon-left">
+    <i class="icon ion-paintbucket"></i>
+    Total
+    <span class="badge"
+          ng-bind="vm.selectedStation.ratingValue">
+    </span>
+  </div>
+
+</div>

@@ -1,0 +1,19 @@
+<ion-modal-view>
+  <ion-header-bar align-title="left">
+    <button class="button button-icon icon ion-android-close" ng-click="vm.close()"></button>
+    <h3 class="title">{{ vm.station.name }}</h3>
+  </ion-header-bar>
+  <ion-content>
+
+    <div class="list">
+      <a class="item item-avatar item-text-wrap" href="#" ng-repeat="rating in vm.ratings">
+        <img ng-src="{{rating.avatar || 'img/avatar.png'}}">
+        <h2>{{rating.userName}}</h2>
+        <p>{{rating.comment}}</p>
+        <rating ng-model="rating.rating" readonly="true"></rating>
+      </a>
+      <a class="item item-avatar item-text-wrap" href="#" ng-show="!vm.ratings">
+        <p>Aún no hay opiniones para esta gasolinera.</p>
+      </a>
+    </div>
+  </ion-content>
