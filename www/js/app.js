@@ -6,7 +6,7 @@
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
 angular.module('starter', [
-    'ionic',
+    'ionic','ionic.service.core',
     'ngMessages',
     'starter.config',
     'starter.controllers',
@@ -18,7 +18,8 @@ angular.module('starter', [
     'firebase.auth',
     'uiGmapgoogle-maps',
     'ui.validate',
-    'ngCordova'
+    'ngCordova',
+    'ngIOS9UIWebViewPatch'
 ])
 
     .run(function($ionicPlatform) {
