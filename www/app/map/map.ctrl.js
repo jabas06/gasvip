@@ -25,7 +25,7 @@
       var lastNetworkStatus = '';
 
       var memberBenefitsPopup = {
-        templateUrl: 'templates/member-benefits.html',
+        templateUrl: 'app/shared/member-benefits.html',
         title: 'Hazte miembro. Es gratis!',
         subTitle: '',
         scope: $scope,
@@ -100,8 +100,7 @@
       vm.shareStation = shareStation;
 
       vm.displayStationMapActions = false;
-
-      vm.submitStationRating = submitStationRating;
+      
       vm.whatToImproveIsValid = whatToImproveIsValid;
 
       init();
@@ -287,7 +286,7 @@
       function showProfecoInfo() {
         if (user) {
           $ionicPopup.show({
-            templateUrl: 'templates/profeco-info.html',
+            templateUrl: 'app/map/profeco-info.html',
             title: 'Inspección de Profeco',
             subTitle: '',
             scope: $scope,
@@ -405,7 +404,7 @@
       function showScoreDetail() {
         if (user) {
           $ionicPopup.show({
-            templateUrl: 'templates/score-detail.html',
+            templateUrl: 'app/map/score-detail.html',
             title: 'Detalle de la calificación',
             subTitle: '',
             scope: $scope,
@@ -542,7 +541,7 @@
           geolocationManager.startWatchLocation(locationChange);
         });
 
-        $ionicModal.fromTemplateUrl('templates/map-bottom-sheet.html', {
+        $ionicModal.fromTemplateUrl('app/map/map-bottom-sheet.html', {
           scope: $scope,
           viewType: 'bottom-sheet',
           animation: 'slide-in-up'

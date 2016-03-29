@@ -2,7 +2,7 @@
   'use strict';
   angular.module('gasvip')
 
-    .controller('RateStationCtrl', function ($scope, $ionicLoading, ratingsService, user, newStationRating) {
+    .controller('RateStationCtrl', function ($scope, $ionicLoading, ratingsService, $firebaseAuthService, newStationRating) {
       var vm = this;
 
       vm.newStationRating = newStationRating;
@@ -17,44 +17,48 @@
 
       function submitStationRating(form) {
         if (form.$valid) {
-          if (user) {
-            $ionicLoading.show({
-              template: '<ion-spinner></ion-spinner><div>Enviando...</div>',
-              noBackdrop: false
-            });
+          $firebaseAuthService.$waitForAuth().then(function(user) {
+            if (user) {
+              $ionicLoading.show({
+                template: '<ion-spinner></ion-spinner><div>Enviando...</div>',
+                noBackdrop: false
+              });
 
-            var rating = {
-              uid: vm.newStationRating.uid,
-              rating: vm.newStationRating.rating,
-              time: Firebase.ServerValue.TIMESTAMP,
-              comment: vm.newStationRating.comment,
-              whatToImprove: vm.newStationRating.whatToImprove,
-              stationId: vm.newStationRating.stationId,
-              userId: user.uid,
-              userName: user.facebook.displayName,
-              avatar: user.facebook.profileImageURL || null
-            };
+              var rating = {
+                uid: vm.newStationRating.uid,
+                rating: vm.newStationRating.rating,
+                time: Firebase.ServerValue.TIMESTAMP,
+                comment: vm.newStationRating.comment,
+                whatToImprove: vm.newStationRating.whatToImprove,
+                stationId: vm.newStationRating.stationId,
+                userId: user.uid,
+                userName: user.facebook.displayName,
+                avatar: user.facebook.profileImageURL || null
+              };
 
-            ratingsService.saveRating(rating, vm.newStationRating.ratingNumber).then(function (result) {
-              $ionicLoading.hide();
+              ratingsService.saveRating(rating, vm.newStationRating.ratingNumber).then(function (result) {
+                $ionicLoading.hide();
 
-              if (result.error || !result.committed) {
-                $cordovaToast.showShortBottom('Tu calificación ha sido guardada y será procesada más tarde');
-              }
-              else {
-                $cordovaToast.showShortBottom('La calificacíón se guardó correctamente.');
-                $scope.closeModal(result.rating);
-              }
+                if (result.error || !result.committed) {
+                  $cordovaToast.showShortBottom('Tu calificación ha sido guardada y será procesada más tarde');
+                }
+                else {
+                  $cordovaToast.showShortBottom('La calificacíón se guardó correctamente.');
+                  $scope.closeModal(result.rating);
+                }
 
-            }).catch(function (error) {
-              $ionicLoading.hide();
-              $cordovaToast.showShortBottom('Ocurrió un error al enviar la calificación. Intenta nuevamente');
-            });
-          }
-          else {
-            closeRateStationModal();
-            $cordovaToast.showShortBottom('Debes iniciar sesión');
-          }
+              }).catch(function (error) {
+                $ionicLoading.hide();
+                $cordovaToast.showShortBottom('Ocurrió un error al enviar la calificación. Intenta nuevamente');
+              });
+            }
+            else {
+              close();
+              $cordovaToast.showShortBottom('Debes iniciar sesión');
+            }
+          }, function(error) {
+            $cordovaToast.showShortBottom(angular.toJson(error));
+          });
         }
       }
 

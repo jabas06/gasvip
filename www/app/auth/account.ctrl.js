@@ -6,7 +6,7 @@
                                          user, $firebaseAuthService, $firebaseRef, $firebaseObject, $state) {
       $scope.vm = {};
       var self = $scope.vm;
-      var profile = $firebaseObject($firebaseRef.child('users').child(user.uid));
+      var profile = $firebaseObject($firebaseRef.users.child(user.uid));
 
       self.user = user;
       self.logout = logout;
@@ -43,7 +43,7 @@
       }
 
       function init() {
-        $ionicPopover.fromTemplateUrl('templates/account-popover.html', {
+        $ionicPopover.fromTemplateUrl('app/auth/account-popover.html', {
           scope: $scope,
         }).then(function (popover) {
           self.popover = popover;

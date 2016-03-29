@@ -2,8 +2,8 @@
   'use strict';
   angular.module('gasvip')
 
-    .factory('GeofireRef', function ($window, firebaseRefProvider) {
+    .factory('GeofireRef', function ($window, $firebaseRef) {
       'use strict';
-      return new $window.GeoFire(firebaseRefProvider.child('geofire'));
+      return new $window.GeoFire($firebaseRef.geofire);
     });
 })();

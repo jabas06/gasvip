@@ -18,7 +18,7 @@
       noBackdrop: true
     })
 
-    .constant('FirebaseUrl', 'https://gasolineras.firebaseio.com')
+    .constant('FirebaseUrl', 'https://gasolineras.firebaseio.com/')
     .constant('SIMPLE_LOGIN_PROVIDERS', ['anonymous', 'facebook'])
     // ------------------------
     .config(function (uiGmapGoogleMapApiProvider) {
@@ -28,9 +28,14 @@
         libraries: 'places'
       });
     })
-    .config(function(FirebaseUrl, firebaseRefProvider) {
-      firebaseRefProvider.registerUrl({
-        default: FirebaseUrl
+    .config(function(FirebaseUrl, $firebaseRefProvider) {
+      $firebaseRefProvider.registerUrl({
+        default: FirebaseUrl,
+        geofire: FirebaseUrl + 'geofire',
+        users: FirebaseUrl + 'users',
+        stations: FirebaseUrl + 'stations',
+        ratings: FirebaseUrl + 'ratings',
+        ratingsByStation: FirebaseUrl + 'ratingsByStation',
       });
     });
 })();

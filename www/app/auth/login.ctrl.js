@@ -92,7 +92,7 @@
 
           $ionicLoading.show({template: 'Iniciando sesión...'});
           //Register the user if the account doesn't exist
-          $firebaseRef.child('users/' + authData.uid).once('value', function (data) {
+          $firebaseRef.users.child(authData.uid).once('value', function (data) {
             $ionicLoading.hide();
 
             var userInfo = getUserInfo(authData);
@@ -100,7 +100,7 @@
             if (data.val() === null) {
 
               $ionicLoading.show({template: 'Iniciando sesión...'});
-              $firebaseRef.child('users').child(authData.uid).set({
+              $firebaseRef.users.child(authData.uid).set({
 
                 name: userInfo.name,
                 email: userInfo.email,
@@ -118,7 +118,7 @@
               });
             }
             else {
-              $firebaseRef.child('users').child(authData.uid).update({
+              $firebaseRef.users.child(authData.uid).update({
                 name: userInfo.name,
                 email: userInfo.email,
                 avatar: userInfo.avatar,

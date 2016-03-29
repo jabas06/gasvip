@@ -2,7 +2,7 @@
   'use strict';
   angular.module('gasvip')
 
-    .factory('ratingsService', function ($log, $q, $firebaseRef, user, appConfig) {
+    .factory('ratingsService', function ($log, $q, $firebaseRef, $firebaseAuthService, appConfig) {
 
       return {
         getRatingsByStation: getRatingsByStation,
@@ -15,18 +15,18 @@
       // ----------
 
       function getRatingsByStation(stationId) {
-        return $firebaseRef.child('ratingsByStation/' + stationId).orderByChild("time").limitToLast(100)
+        return $firebaseRef.ratingsByStation.child(stationId).orderByChild('time').limitToLast(100)
           .once('value').then(function (snapshot) {
             return snapshot.val();
           })
       }
 
       function newRatingForStation(station) {
-        return $firebaseRef.child(getTodayRatingPath()).once('value').then(function () {
+        return $firebaseRef.default.child(getTodayRatingPath()).once('value').then(function () {
           var currentRatings = data.val();
 
           var ratingNumber = 1;
-          var ratingUid = $firebaseRef.child("ratings").push().key();
+          var ratingUid = $firebaseRef.ratings.push().key();
           var alreadyRatedStation = false;
 
           if (currentRatings !== null) {
@@ -74,40 +74,44 @@
       function saveRating(rating, ratingNumber) {
         var deferred = $q.defer();
 
-        rating.whatToImprove = rating.newStationRating.rating > 3 ? null : rating.whatToImprove;
+        $firebaseAuthService.$waitForAuth().then(function(user) {
+          rating.whatToImprove = rating.newStationRating.rating > 3 ? null : rating.whatToImprove;
 
-        var ratingFanout = {};
+          var ratingFanout = {};
 
-        ratingFanout[getTodayRatingPath(user.uid) + '/' + ratingNumber] = rating;
-        ratingFanout['ratingsByStation/' + rating.stationId + '/' + rating.uid] = rating;
-        ratingFanout['ratingsByUser/' + rating.userId + '/' + rating.uid] = angular.copy(rating);
-        ratingFanout['ratingsByUser/' + rating.userId + '/' + rating.uid].avatar = null;
+          ratingFanout[getTodayRatingPath(user.uid) + '/' + ratingNumber] = rating;
+          ratingFanout['ratingsByStation/' + rating.stationId + '/' + rating.uid] = rating;
+          ratingFanout['ratingsByUser/' + rating.userId + '/' + rating.uid] = angular.copy(rating);
+          ratingFanout['ratingsByUser/' + rating.userId + '/' + rating.uid].avatar = null;
 
-        $firebaseRef.update(ratingFanout).then(function() {
-          $firebaseRef.child('stations/' + rating.stationId + '/private/rating').transaction(function(currentRating) {
-            currentRating = currentRating || {};
+          $firebaseRef.default.update(ratingFanout).then(function() {
+            $firebaseRef.stations.child(rating.stationId + '/private/rating').transaction(function(currentRating) {
+              currentRating = currentRating || {};
 
-            currentRating.sum = (currentRating.sum || 0) + rating.rating;
-            currentRating.count = (currentRating.count || 0) + 1;
+              currentRating.sum = (currentRating.sum || 0) + rating.rating;
+              currentRating.count = (currentRating.count || 0) + 1;
 
-            return currentRating;
+              return currentRating;
 
-          }).then(function(result) {
-            if (!result.committed)
-              $log.log('Rating transaction not committed.');
+            }).then(function(result) {
+              if (!result.committed)
+                $log.log('Rating transaction not committed.');
 
-            deferred.resolve({
-              rating: result.committed ? result.snapshot.val() : null,
-              committed: result.committed
+              deferred.resolve({
+                rating: result.committed ? result.snapshot.val() : null,
+                committed: result.committed
+              });
+            }, function(error) {
+              $log.log('Rating transaction failed. ' + error);
+
+              deferred.resolve({ error: error, committed: false });
             });
-          }, function(error) {
-            $log.log('Rating transaction failed. ' + error);
+          }).catch(function(error) {
+            $log.log(error);
 
-            deferred.resolve({ error: error, committed: false });
+            deferred.reject(error)
           });
-        }).catch(function(error) {
-          $log.log(error);
-
+        }, function(error) {
           deferred.reject(error)
         });
 

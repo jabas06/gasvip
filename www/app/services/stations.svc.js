@@ -2,7 +2,7 @@
   'use strict';
   angular.module('gasvip')
 
-    .factory('stationsService', function ($firebaseRef, user) {
+    .factory('stationsService', function ($firebaseRef, $firebaseAuthService) {
       return {
         getStationData: getStationData,
         getPublicStationData: getPublicStationData,
@@ -14,14 +14,16 @@
       // ----------
 
       function getStationData(stationKey) {
-        if (user)
-          return getPremiumStationData(stationKey);
-        else
-          return getPublicStationData(stationKey);
+        return $firebaseAuthService.$waitForAuth().then(function(user) {
+          if (user)
+            return getPremiumStationData(stationKey);
+          else
+            return getPublicStationData(stationKey);
+        });
       }
 
       function getPublicStationData(stationKey) {
-        return $firebaseRef.child('stations').child(stationKey).once('value').then(function (snapshot) {
+        return $firebaseRef.stations.child(stationKey).once('value').then(function(snapshot) {
           var station = snapshot.val();
 
           return {
@@ -35,7 +37,7 @@
       }
 
       function getPremiumStationData(stationKey) {
-        return $firebaseRef.child('stations').child(stationKey).child('public').once('value').then(function(snapshot) {
+        return $firebaseRef.stations.child(stationKey).child('public').once('value').then(function(snapshot) {
           var station = snapshot.val();
 
           return {

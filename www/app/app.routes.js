@@ -15,14 +15,14 @@
         .state('app', {
           url: "/app",
           abstract: true,
-          templateUrl: 'templates/menu.html'
+          templateUrl: 'app/shared/menu.html'
         })
 
         .waitForAuthState('app.map', {
           url: '/map',
           views: {
             'menuContent': {
-              templateUrl: 'templates/map.html',
+              templateUrl: 'app/map/map.html',
               controller: 'MapCtrl',
               controllerAs: 'vm'
             }
@@ -33,7 +33,7 @@
           url: '/login',
           views: {
             'menuContent': {
-              templateUrl: 'templates/login.html',
+              templateUrl: 'app/auth/login.html',
               controller: 'LoginCtrl',
               controllerAs: 'vm'
             }
@@ -44,7 +44,7 @@
           url: '/account',
           views: {
             'menuContent': {
-              templateUrl: 'templates/account.html',
+              templateUrl: 'app/auth/account.html',
               controller: 'AccountCtrl'
             }
           }

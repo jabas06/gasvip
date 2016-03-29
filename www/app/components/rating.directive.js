@@ -1,4 +1,4 @@
-angular.module('starter.directives')
+angular.module('gasvip')
 
     .constant('ratingConfig', {
         max: 5,
@@ -77,7 +77,7 @@ angular.module('starter.directives')
                 onLeave: '&'
             },
             controller: 'RatingController',
-            templateUrl: "templates/rating.directive.html",
+            templateUrl: "components/rating.directive.html",
             replace: true,
             link: function(scope, element, attrs, ctrls) {
                 var ratingCtrl = ctrls[0], ngModelCtrl = ctrls[1];

@@ -2,12 +2,10 @@
   'use strict';
 
   angular.module('gasvip', [
-      'ionic', 'ionic.service.core',
+      'ionic',
       'ngMessages',
       'gasvip',
       'firebase',
-      'firebase.ref',
-      'firebase.auth',
       'uiGmapgoogle-maps',
       'ui.validate',
       'ngCordova',
