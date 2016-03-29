@@ -2,27 +2,31 @@
   'use strict';
 
   var serviceId = 'modalLauncher';
-  angular.module('starter.services').factory(serviceId, [
-    '$ionicModal', '$rootScope', '$q', '$injector', '$controller', appModalService
+  angular.module('gasvip').factory(serviceId, [
+    '$ionicModal', '$rootScope', '$q', '$controller', appModalService
   ]);
 
-  function appModalService($ionicModal, $rootScope, $q, $injector, $controller) {
+  function appModalService($ionicModal, $rootScope, $q, $controller) {
 
     return {
-      show: show
-    }
+      showModal: showModal,
+      showBottomSheet: showBottomSheet
+    };
 
-    function show(templateUrl, controller, parameters) {
+    // ----------
+    // Internal
+    // ----------
+
+    function show(templateUrl, modalOptions, controller, parameters) {
       // Grab the injector and create a new scope
       var deferred = $q.defer(),
         ctrlInstance,
         modalScope = $rootScope.$new(),
         thisScopeId = modalScope.$id;
 
-      $ionicModal.fromTemplateUrl(templateUrl, {
-        scope: modalScope,
-        animation: 'slide-in-up'
-      }).then(function (modal) {
+      modalOptions.scope = modalScope;
+
+      $ionicModal.fromTemplateUrl(templateUrl, modalOptions).then(function (modal) {
         modalScope.modal = modal;
 
         modalScope.openModal = function () {
@@ -60,6 +64,23 @@
       return deferred.promise;
     }
 
+    function showModal(templateUrl, controller, parameters) {
+      var modalOptions = {
+        animation: 'slide-in-up'
+      };
+
+      return show(templateUrl, modalOptions, controller, parameters);
+    }
+
+    function showBottomSheet(templateUrl, controller, parameters) {
+      var modalOptions = {
+        viewType: 'bottom-sheet',
+        animation: 'slide-in-up'
+      };
+
+      return show(templateUrl, modalOptions, controller, parameters);
+    }
+
     function _cleanup(scope) {
       scope.$destroy();
       if (scope.modal) {
@@ -84,7 +105,5 @@
 
       return result;
     }
-
-
   } // end
 })();

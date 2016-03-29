@@ -1,4 +1,4 @@
-angular.module('starter.services')
+angular.module('gasvip')
     .factory('Channel', function(){
       return function () {
         var callbacks = {};

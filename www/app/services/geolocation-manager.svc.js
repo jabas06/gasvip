@@ -1,4 +1,4 @@
-angular.module('starter.services')
+angular.module('gasvip')
     .factory('geolocationManager', function($q, $log, $cordovaGeolocation, $ionicPlatform,
                                             $ionicPopup, $cordovaDiagnostic, $cordovaToast){
 

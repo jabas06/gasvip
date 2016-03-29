@@ -32,11 +32,6 @@
                 <ui-gmap-map-control template="map-actions-ctrl.tpl.html" position="TOP_LEFT" ng-cloak
                                      controller="MapStationWidgetsCtrl as mapvm"></ui-gmap-map-control>
 
-                <ui-gmap-window coords="vm.stationInfoWindow.coords" show="vm.stationInfoWindow.show"
-                                options="vm.stationInfoWindow" closeClick="vm.markerWindowCloseClick()"
-                                templateUrl="vm.stationInfoWindow.templateUrl"
-                                templateParameter="vm.stationInfoWindow.templateParameter" ng-cloak>
-                </ui-gmap-window>
                 <ui-gmap-markers models="vm.stationMarkers" coords="'self'" icon="'icon'"
                                  options="'options'" click="onClick">
                 </ui-gmap-markers>

@@ -1,4 +1,4 @@
-angular.module('starter.services')
+angular.module('gasvip')
     .factory('$cordovaDiagnostic', ['$q', '$window', function ($q, $window) {
 
         return {

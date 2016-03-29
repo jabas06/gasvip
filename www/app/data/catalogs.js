@@ -1,4 +1,4 @@
-angular.module('starter.data')
+angular.module('gasvip')
     .value('catalogs', {
         improvementAreas : [
             {
