@@ -2,7 +2,7 @@
   'use strict';
   angular.module('gasvip')
 
-    .controller('LoginCtrl', function ($timeout, $log, $state, $ionicHistory, $ionicLoading, $cordovaFacebook, $cordovaToast, firebaseAuthService, $firebaseRef) {
+    .controller('LoginCtrl', function ($timeout, $log, $state, $ionicHistory, $ionicLoading, $cordovaFacebook, $cordovaToast, $firebaseAuthService, $firebaseRef) {
       var self = this;
 
       var loginScope = ['email', 'user_likes', 'user_about_me'];
@@ -29,7 +29,7 @@
                 if (result.status === 'connected') {
 
                   $ionicLoading.show({template: 'Iniciando sesión...'});
-                  firebaseAuthService.$authWithOAuthToken(provider, result.authResponse.accessToken).then(afterSuccessLogin, showError);
+                  $firebaseAuthService.$authWithOAuthToken(provider, result.authResponse.accessToken).then(afterSuccessLogin, showError);
                 }
                 else {
                   facebookLogin();
@@ -57,7 +57,7 @@
           if (result.status === 'connected') {
 
             $ionicLoading.show({template: 'Iniciando sesión...'});
-            firebaseAuthService.$authWithOAuthToken('facebook', result.authResponse.accessToken).then(afterSuccessLogin, showError);
+            $firebaseAuthService.$authWithOAuthToken('facebook', result.authResponse.accessToken).then(afterSuccessLogin, showError);
           }
           else {
             $cordovaToast.showShortCenter('No pudimos autenticarte');
@@ -77,14 +77,14 @@
         }
 
         $ionicLoading.show({template: 'Iniciando sesión...'});
-        firebaseAuthService.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError);
+        $firebaseAuthService.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError);
 
 
       }
 
       function anonymousLogin() {
         self.err = null;
-        firebaseAuthService.$authAnonymously().then(afterSuccessLogin, showError);
+        $firebaseAuthService.$authAnonymously().then(afterSuccessLogin, showError);
       }
 
       function afterSuccessLogin(authData) {

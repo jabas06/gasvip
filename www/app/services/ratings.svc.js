@@ -2,7 +2,7 @@
   'use strict';
   angular.module('gasvip')
 
-    .factory('ratingsService', function ($log, $q, $firebaseRef, $firebaseAuthService, appConfig) {
+    .factory('ratingsService', function ($log, $q, $firebaseRef, appConfig) {
 
       return {
         getRatingsByStation: getRatingsByStation,
@@ -21,9 +21,9 @@
           })
       }
 
-      function newRatingForStation(station) {
-        return $firebaseRef.default.child(getTodayRatingPath()).once('value').then(function () {
-          var currentRatings = data.val();
+      function newRatingForStation(station, user) {
+        return $firebaseRef.default.child(getTodayRatingPath(user.uid)).once('value').then(function (snapshot) {
+          var currentRatings = snapshot.val();
 
           var ratingNumber = 1;
           var ratingUid = $firebaseRef.ratings.push().key();
@@ -71,58 +71,54 @@
         });
       }
 
-      function saveRating(rating, ratingNumber) {
+      function saveRating(rating, ratingNumber, user) {
         var deferred = $q.defer();
 
-        $firebaseAuthService.$waitForAuth().then(function(user) {
-          rating.whatToImprove = rating.newStationRating.rating > 3 ? null : rating.whatToImprove;
+        rating.whatToImprove = rating.rating > 3 ? null : rating.whatToImprove;
 
-          var ratingFanout = {};
+        var ratingFanout = {};
 
-          ratingFanout[getTodayRatingPath(user.uid) + '/' + ratingNumber] = rating;
-          ratingFanout['ratingsByStation/' + rating.stationId + '/' + rating.uid] = rating;
-          ratingFanout['ratingsByUser/' + rating.userId + '/' + rating.uid] = angular.copy(rating);
-          ratingFanout['ratingsByUser/' + rating.userId + '/' + rating.uid].avatar = null;
+        ratingFanout[getTodayRatingPath(user.uid) + '/' + ratingNumber] = rating;
+        ratingFanout['ratingsByStation/' + rating.stationId + '/' + rating.uid] = rating;
+        ratingFanout['ratingsByUser/' + rating.userId + '/' + rating.uid] = angular.copy(rating);
+        ratingFanout['ratingsByUser/' + rating.userId + '/' + rating.uid].avatar = null;
 
-          $firebaseRef.default.update(ratingFanout).then(function() {
-            $firebaseRef.stations.child(rating.stationId + '/private/rating').transaction(function(currentRating) {
-              currentRating = currentRating || {};
+        $firebaseRef.default.update(ratingFanout).then(function() {
+          $firebaseRef.stations.child(rating.stationId + '/private/rating').transaction(function(currentRating) {
+            currentRating = currentRating || {};
 
-              currentRating.sum = (currentRating.sum || 0) + rating.rating;
-              currentRating.count = (currentRating.count || 0) + 1;
+            currentRating.sum = (currentRating.sum || 0) + rating.rating;
+            currentRating.count = (currentRating.count || 0) + 1;
 
-              return currentRating;
+            return currentRating;
 
-            }).then(function(result) {
-              if (!result.committed)
-                $log.log('Rating transaction not committed.');
+          }).then(function(result) {
+            if (!result.committed)
+              $log.log('Rating transaction not committed.');
 
-              deferred.resolve({
-                rating: result.committed ? result.snapshot.val() : null,
-                committed: result.committed
-              });
-            }, function(error) {
-              $log.log('Rating transaction failed. ' + error);
-
-              deferred.resolve({ error: error, committed: false });
+            deferred.resolve({
+              rating: result.committed ? result.snapshot.val() : null,
+              committed: result.committed
             });
-          }).catch(function(error) {
-            $log.log(error);
+          }, function(error) {
+            $log.log('Rating transaction failed. ' + error);
 
-            deferred.reject(error)
+            deferred.resolve({ error: error, committed: false });
           });
-        }, function(error) {
+        }).catch(function(error) {
+          $log.log(error);
+
           deferred.reject(error)
         });
 
-        return deferred.promise();
+        return deferred.promise;
       }
 
-      function getTodayRatingPath() {
+      function getTodayRatingPath(userUid) {
         var ratingDateKey = new Date();
         ratingDateKey.setUTCHours(0,0,0,0);
 
-        return 'ratingsByTime/' + ratingDateKey.getTime() + '/' + user.uid;
+        return 'ratingsByTime/' + ratingDateKey.getTime() + '/' + userUid;
       }
     });
 })();

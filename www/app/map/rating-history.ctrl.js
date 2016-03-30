@@ -1,8 +1,8 @@
 angular.module('gasvip')
-  .controller('RatingHistoryCtrl', function($scope, $ionicLoading, ratingsService, station) {
+  .controller('RatingHistoryCtrl', function($scope, $ionicLoading, ratingsService, parameters) {
     var vm = this;
 
-    vm.station = station;
+    vm.station = parameters.station;
     vm.close = close;
     vm.ratingsCount = null;
 

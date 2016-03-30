@@ -3,9 +3,9 @@
   angular.module('gasvip')
 
     .controller('MapCtrl', function ($rootScope, $scope, $timeout, $log, $state,
-                                     $ionicLoading, $ionicPlatform, $ionicModal, $ionicBackdrop, $ionicPopup,
+                                     $ionicLoading, $ionicPlatform, $ionicModal, $ionicPopup,
                                      geolocationManager, $cordovaToast, StationMarker,
-                                     GeofireRef, GeoFire, _, catalogs, appConfig, appModals, mapService, stationsService,
+                                     GeofireRef, GeoFire, _, appModals, mapService, stationsService,
                                      mapWidgetsChannel, uiGmapIsReady, user, $cordovaSocialSharing, ratingsService) {
       var vm = this;
 
@@ -84,12 +84,6 @@
 
       vm.bottomSheetModal = null;
 
-      vm.newStationRating = {
-        rating: 0
-      };
-
-      vm.improvementAreas = angular.copy(catalogs.improvementAreas);
-
       vm.closeBottomSheet = closeBottomSheet;
       vm.openRateStationModal = openRateStationModal;
       vm.showRatingHistory = showRatingHistory;
@@ -100,8 +94,6 @@
       vm.shareStation = shareStation;
 
       vm.displayStationMapActions = false;
-      
-      vm.whatToImproveIsValid = whatToImproveIsValid;
 
       init();
 
@@ -183,18 +175,13 @@
 
         if (Object.keys(stationsInQuery).length > 0) {
 
-          if (findNearestStationPopup) {
-            findNearestStationPopup.close();
-            findNearestStationPopup = null;
-          }
-
           if (findingNearestStation === true) {
-            var nearestStation = _.chain(stationsInQuery)
+            vm.selectedStation = _.chain(stationsInQuery)
               .sortBy(function (station) {
                 return GeoFire.distance([vm.myLocation.latitude, vm.myLocation.longitude], [station.latitude, station.longitude]);
               })
               .first(1).value();
-            vm.selectedStation = nearestStation;
+
             calculateRoute();
 
             findingNearestStation = false;
@@ -372,16 +359,15 @@
 
       function openRateStationModal() {
         if (user) {
-          ratingsService.newRatingForStation(vm.selectedStation).then(function (result) {
+          ratingsService.newRatingForStation(vm.selectedStation, user).then(function (result) {
             if (result.canRateStation) {
-              vm.newStationRating = result.newRating;
 
               closeBottomSheet();
 
-              appModals.showRateStation(vm.newStationRating).then(function (rating) {
+              appModals.showRateStation({ newRating: result.newRating}).then(function (rating) {
                 if (rating) {
-                  stationsInQuery[vm.newStationRating.stationId].rating = rating;
-                  stationsInQuery[vm.newStationRating.stationId].refreshMarkerRating();
+                  stationsInQuery[result.newRating.stationId].rating = rating;
+                  stationsInQuery[result.newRating.stationId].refreshMarkerRating();
                 }
               })
             }
@@ -415,10 +401,6 @@
         }
         else
           $ionicPopup.show(memberBenefitsPopup);
-      }
-
-      function whatToImproveIsValid(value) {
-        return vm.newStationRating.rating > 3 || (angular.isDefined(value) && !!value);
       }
 
       function fitBoundsToRoute() {
@@ -515,7 +497,7 @@
         if (!user)
           return $ionicPopup.show(memberBenefitsPopup);
 
-        appModals.showRatingHistory(vm.selectedStation);
+        appModals.showRatingHistory({ station: vm.selectedStation });
       }
 
       function init() {

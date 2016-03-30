@@ -13,16 +13,17 @@
       // Internal
       // ----------
 
-      function showRatingHistory(station) {
-        return modalLauncher.showModal('app/map/rating-history.html', 'RatingHistoryCtrl as vm', station);
+      function showRatingHistory(parameters) {
+        return modalLauncher.showModal('app/map/rating-history.html', 'RatingHistoryCtrl as vm', parameters);
       }
 
-      function showRateStation(newRating) {
-        return modalLauncher.showModal('app/map/rate-station.html', 'RateStationCtrl as vm', newRating);
+      function showRateStation(parameters) {
+        return modalLauncher.showModal('app/map/rate-station.html', 'RateStationCtrl', parameters);
       }
 
-      function showMapBottomSheet(station) {
-        return modalLauncher.showBottomSheet('app/map/map-bottom-sheet.html', 'MapBottomSheetCtrl as vm', station);
+      function showMapBottomSheet(parameters) {
+        // TODO: refactor map botton sheet
+        return modalLauncher.showBottomSheet('app/map/map-bottom-sheet.html', 'MapBottomSheetCtrl as vm', parameters);
       }
     });
 })();

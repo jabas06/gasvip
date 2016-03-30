@@ -70,7 +70,7 @@
           deferred.reject(error);
         });
 
-        return deferred.promise();
+        return deferred.promise;
       }
 
       function clearRoute() {

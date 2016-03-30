@@ -1,31 +1,31 @@
 <ion-modal-view>
   <ion-header-bar align-title="left">
-    <button class="button button-icon icon ion-android-close" ng-click="vm.close()"></button>
+    <button class="button button-icon icon ion-android-close" ng-click="close()"></button>
     <h3 class="title">Evalua esta estación</h3>
   </ion-header-bar>
   <ion-content>
-    <div class="text-center padding"><span ng-bind="vm.newStationRating.name" class="padding station-name"></span></div>
-    <form name="vm.rateForm" novalidate="" ng-submit="vm.submitStationRating(vm.rateForm)" ng-cloak>
+    <div class="text-center padding"><span ng-bind="newStationRating.name" class="padding station-name"></span></div>
+    <form name="rateForm" novalidate="" ng-submit="submitStationRating(rateForm)" ng-cloak>
       <div class="list">
         <div class="item text-center">
           <div>Valorar</div>
-          <rating ng-model="vm.newStationRating.rating"></rating>
+          <rating ng-model="newStationRating.rating"></rating>
         </div>
 
         <label class="item item-input item-select"
-               ng-class="{ 'has-errors' : vm.rateForm.whatToImprove.$invalid && vm.rateForm.$submitted }"
-                ng-show="vm.newStationRating.rating > 0 && vm.newStationRating.rating < 4">
+               ng-class="{ 'has-errors' : rateForm.whatToImprove.$invalid && rateForm.$submitted }"
+                ng-show="newStationRating.rating > 0 && newStationRating.rating < 4">
           <div class="input-label">
             ¿Qué podemos mejorar?
           </div>
-          <select name="whatToImprove" ng-model="vm.newStationRating.whatToImprove"
-                  ng-options="improvement.name as improvement.description for improvement in vm.improvementAreas"
-                  ui-validate=" 'vm.whatToImproveIsValid($value)' "
-                  ui-validate-watch=" 'vm.newStationRating.rating' ">
+          <select name="whatToImprove" ng-model="newStationRating.whatToImprove"
+                  ng-options="improvement.name as improvement.description for improvement in improvementAreas"
+                  ui-validate=" 'whatToImproveIsValid($value)' "
+                  ui-validate-watch=" 'newStationRating.rating' ">
           </select>
         </label>
-        <div class="error-container" ng-show="vm.rateForm.whatToImprove.$invalid && vm.rateForm.$submitted"
-             ng-messages="vm.rateForm.whatToImprove.$error">
+        <div class="error-container" ng-show="rateForm.whatToImprove.$invalid && rateForm.$submitted"
+             ng-messages="rateForm.whatToImprove.$error">
           <div class="error" ng-message="validator">
             <i class="ion-information-circled"></i>
             Elija una opción
@@ -33,12 +33,12 @@
         </div>
 
         <label class="item item-input"
-               ng-class="{ 'has-errors' : vm.rateForm.comment.$invalid && vm.rateForm.$submitted }">
-          <textarea type="text" rows="4" placeholder="Deja un comentario" name="comment" ng-model="vm.newStationRating.comment"
+               ng-class="{ 'has-errors' : rateForm.comment.$invalid && rateForm.$submitted }">
+          <textarea type="text" rows="4" placeholder="Deja un comentario" name="comment" ng-model="newStationRating.comment"
                  maxlength="1000"></textarea>
         </label>
-        <div class="error-container last-error-container" ng-show="vm.rateForm.comment.$invalid && vm.rateForm.$submitted"
-             ng-messages="vm.rateForm.comment.$error">
+        <div class="error-container last-error-container" ng-show="rateForm.comment.$invalid && rateForm.$submitted"
+             ng-messages="rateForm.comment.$error">
           <div class="error" ng-message="maxlength">
             <i class="ion-information-circled"></i>
             Máximo 1000 caracteres
@@ -48,7 +48,7 @@
 
       <div class="padding">
         <button class="button button-block button-positive" type="submit"
-                ng-show="vm.newStationRating.rating > 0">
+                ng-show="newStationRating.rating > 0">
           Enviar
         </button>
       </div>

@@ -7,8 +7,8 @@
 
         var self = this;
 
-        angular.forEach(station, function (key) {
-          self[key] = station[key];
+        angular.forEach(station, function (value, key) {
+          self[key] = value;
         });
 
         self.options = {

@@ -2,12 +2,15 @@
   'use strict';
   angular.module('gasvip')
 
-    .controller('RateStationCtrl', function ($scope, $ionicLoading, ratingsService, $firebaseAuthService, newStationRating) {
-      var vm = this;
+    .controller('RateStationCtrl', function ($scope, $ionicLoading, $cordovaToast, $firebaseAuthService, ratingsService, catalogs, parameters) {
+      var vm = $scope;
 
-      vm.newStationRating = newStationRating;
+      vm.newStationRating = parameters.newRating;
       vm.close = close;
       vm.submitStationRating = submitStationRating;
+      vm.whatToImproveIsValid = whatToImproveIsValid;
+
+      vm.improvementAreas = angular.copy(catalogs.improvementAreas);
 
       init();
 
@@ -36,7 +39,7 @@
                 avatar: user.facebook.profileImageURL || null
               };
 
-              ratingsService.saveRating(rating, vm.newStationRating.ratingNumber).then(function (result) {
+              ratingsService.saveRating(rating, vm.newStationRating.ratingNumber, user).then(function (result) {
                 $ionicLoading.hide();
 
                 if (result.error || !result.committed) {
@@ -62,22 +65,16 @@
         }
       }
 
-      function init() {
-        $ionicLoading.show();
-
-        ratingsService.getRatingsByStation(vm.station.id).then(function (ratings) {
-          vm.ratings = ratings;
-
-          vm.ratingsCount = ratings ? Object.keys(ratings).length : 0;
-
-          $ionicLoading.hide();
-        }).catch(function () {
-          $ionicLoading.hide();
-        });
+      function whatToImproveIsValid(value) {
+        return vm.newStationRating.rating > 3 || (angular.isDefined(value) && !!value);
       }
 
       function close() {
         $scope.closeModal(null);
+      }
+
+      function init() {
+
       }
     });
 })();

@@ -23,21 +23,21 @@
       }
 
       function getPublicStationData(stationKey) {
-        return $firebaseRef.stations.child(stationKey).once('value').then(function(snapshot) {
+        return $firebaseRef.stations.child(stationKey).child('public').once('value').then(function(snapshot) {
           var station = snapshot.val();
 
           return {
-            id: dataSnapshot.ref().parent().key(),
+            id: snapshot.ref().parent().key(),
             pemexId: station.pemexId,
             latitude: station.lat,
             longitude: station.lon,
-            name: station.name,
+            name: station.name
           };
         });
       }
 
       function getPremiumStationData(stationKey) {
-        return $firebaseRef.stations.child(stationKey).child('public').once('value').then(function(snapshot) {
+        return $firebaseRef.stations.child(stationKey).once('value').then(function(snapshot) {
           var station = snapshot.val();
 
           return {

@@ -77,7 +77,7 @@ angular.module('gasvip')
                 onLeave: '&'
             },
             controller: 'RatingController',
-            templateUrl: "components/rating.directive.html",
+            templateUrl: "app/components/rating.directive.html",
             replace: true,
             link: function(scope, element, attrs, ctrls) {
                 var ratingCtrl = ctrls[0], ngModelCtrl = ctrls[1];
