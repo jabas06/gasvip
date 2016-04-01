@@ -1,45 +1,48 @@
-angular.module('gasvip')
-    .factory('$cordovaDiagnostic', ['$q', '$window', function ($q, $window) {
+(function() {
+  'use strict';
+  angular.module('gasvip')
 
-        return {
-            isLocationEnabled: function() {
-                var q = $q.defer();
+    .factory('$cordovaDiagnostic', function ($q, $window) {
+      return {
+        isLocationEnabled: function () {
+          var q = $q.defer();
 
-                $window.cordova.plugins.diagnostic.isLocationEnabled(function(enabled){
-                    q.resolve(enabled);
-                }, function(err){
-                    q.reject(err);
-                });
+          $window.cordova.plugins.diagnostic.isLocationEnabled(function (enabled) {
+            q.resolve(enabled);
+          }, function (err) {
+            q.reject(err);
+          });
 
-                return q.promise;
-            },
+          return q.promise;
+        },
 
-            getLocationMode: function() {
-                var q = $q.defer();
+        getLocationMode: function () {
+          var q = $q.defer();
 
-                $window.cordova.plugins.diagnostic.getLocationMode(function(mode){
-                    q.resolve(mode);
-                }, function(err){
-                    q.reject(err);
-                });
+          $window.cordova.plugins.diagnostic.getLocationMode(function (mode) {
+            q.resolve(mode);
+          }, function (err) {
+            q.reject(err);
+          });
 
-                return q.promise;
-            },
+          return q.promise;
+        },
 
-            switchToAndroidLocationSettings: function() {
-                $window.cordova.plugins.diagnostic.switchToLocationSettings();
-            },
+        switchToAndroidLocationSettings: function () {
+          $window.cordova.plugins.diagnostic.switchToLocationSettings();
+        },
 
-            switchToIosAppSettings: function() {
-                var q = $q.defer();
+        switchToAppSettings: function () {
+          var q = $q.defer();
 
-                $window.cordova.plugins.diagnostic.switchToSettings(function(){
-                    q.resolve(mode);
-                }, function(err){
-                    q.reject(err);
-                });
+          $window.cordova.plugins.diagnostic.switchToSettings(function () {
+            q.resolve();
+          }, function (err) {
+            q.reject(err);
+          });
 
-                return q.promise;
-            }
-        };
-    }]);
+          return q.promise;
+        }
+      };
+    });
+})();
