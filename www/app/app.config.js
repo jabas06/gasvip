@@ -15,7 +15,8 @@
 
     .constant('$ionicLoadingConfig', {
       template: '<ion-spinner></ion-spinner>',
-      noBackdrop: true
+      noBackdrop: true,
+      duration: 15000
     })
 
     .constant('FirebaseUrl', 'https://gasolineras.firebaseio.com/')

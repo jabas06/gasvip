@@ -3,14 +3,13 @@
   angular.module('gasvip')
 
     .controller('AccountCtrl', function ($scope, $ionicLoading, $ionicHistory, $ionicPopover,
-                                         user, $firebaseAuthService, $firebaseRef, $firebaseObject, $state) {
+                                         user, $firebaseAuthService, $state, usersServices) {
       $scope.vm = {};
-      var self = $scope.vm;
-      var profile = $firebaseObject($firebaseRef.users.child(user.uid));
+      var vm = $scope.vm;
 
-      self.user = user;
-      self.logout = logout;
-      self.goMap = goMap;
+      vm.user = user;
+      vm.logout = logout;
+      vm.goMap = goMap;
 
       init();
 
@@ -19,7 +18,7 @@
       // ----------
 
       function logout() {
-        self.popover.hide();
+        vm.popover.hide();
 
         $ionicHistory.nextViewOptions({
           disableAnimate: true,
@@ -43,19 +42,23 @@
       }
 
       function init() {
-        $ionicPopover.fromTemplateUrl('app/auth/account-popover.html', {
-          scope: $scope,
-        }).then(function (popover) {
-          self.popover = popover;
-        });
-
         $ionicLoading.show();
-        profile.$loaded().finally(function () {
-          $ionicLoading.hide();
+
+        usersServices.getUserById(user.uid)
+          .then(function(user) {
+            $ionicLoading.hide();
+
+            vm.profile = user;
+          })
+          .catch(function () {
+            $ionicLoading.hide();
+          });
+
+        $ionicPopover.fromTemplateUrl('app/auth/account-popover.html', {
+          scope: $scope
+        }).then(function (popover) {
+          vm.popover = popover;
         });
-
-        profile.$bindTo($scope, 'vm.profile');
       }
-
     });
 })();

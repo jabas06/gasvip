@@ -10,15 +10,13 @@
 
       var startingView = true;
 
-      var service = {
+      return {
         startWatchLocation: startWatchLocation,
         clearLocationWatch: clearLocationWatch,
         reset: reset,
         isStartingView: isStartingView,
         setStartingView: setStartingView
       };
-
-      return service;
 
       // ----------
       // Internal
@@ -36,16 +34,15 @@
         var q = $q.defer();
 
         $ionicPlatform.ready(function () {
-
           $cordovaDiagnostic.isLocationEnabled().then(function (enabled) {
             if (enabled) {
               if (ionic.Platform.isAndroid()) {
                 $cordovaDiagnostic.getLocationMode().then(function (mode) {
-                  if (mode === "high_accuracy") {
-                    geolocationOptions = {maximumAge: 2000, timeout: 15000, enableHighAccuracy: true};
+                  if (mode === 'high_accuracy' || mode === 'device_only') {
+                    geolocationOptions = {maximumAge: 1000, timeout: 15000, enableHighAccuracy: true};
                   }
                   else {
-                    geolocationOptions = {maximumAge: 2000, timeout: 4000, enableHighAccuracy: false};
+                    geolocationOptions = {maximumAge: 1000, timeout: 4000, enableHighAccuracy: false};
                   }
 
                   q.resolve(geolocationOptions);
@@ -54,7 +51,7 @@
                 });
               }
               else {
-                geolocationOptions = {maximumAge: 2000, timeout: 15000, enableHighAccuracy: true};
+                geolocationOptions = {maximumAge: 1000, timeout: 15000, enableHighAccuracy: true};
                 q.resolve(geolocationOptions);
               }
             }
@@ -75,10 +72,7 @@
       }
 
       function startWatchLocation(locationChangeClosure) {
-        $log.log('startWatchLocation');
-
         $ionicPlatform.ready(function () {
-          $log.log('location plat ready');
           if (watchLocation !== null) {
             $cordovaGeolocation.clearWatch(watchLocation.watchID);
           }
