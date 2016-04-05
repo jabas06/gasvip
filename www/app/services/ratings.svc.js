@@ -17,7 +17,15 @@
       function getRatingsByStation(stationId) {
         return $firebaseRef.ratingsByStation.child(stationId).orderByChild('time').limitToLast(100)
           .once('value').then(function (snapshot) {
-            return snapshot.val();
+            var ratings = snapshot.val();
+
+            var ratingsArray = [];
+
+            angular.forEach(ratings, function (value) {
+              ratingsArray.push(value);
+            });
+
+            return ratingsArray;
           })
       }
 

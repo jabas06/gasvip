@@ -6,9 +6,10 @@
   <ion-content>
 
     <div class="list">
-      <a class="item item-avatar item-text-wrap" href="#" ng-repeat="rating in vm.ratings | orderBy:'time'">
+      <a class="item item-avatar item-text-wrap" href="#" ng-repeat="rating in vm.ratings | orderBy:'-time'">
         <img ng-src="{{rating.avatar || 'img/avatar.png'}}">
-        <h2>{{rating.userName}}</h2> <span>{{rating.time}}</span>
+        <h2>{{rating.userName}}</h2>
+        <p>{{rating.time | date:'yyyy-MM-dd'}}</p>
         <p>{{rating.comment}}</p>
         <rating ng-model="rating.rating" readonly="true"></rating>
       </a>
