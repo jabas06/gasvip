@@ -24,7 +24,7 @@
     // ------------------------
     .config(function (uiGmapGoogleMapApiProvider) {
       uiGmapGoogleMapApiProvider.configure({
-        key: 'AIzaSyDVhbumpP6UqOTxLYgk5V9aw377JkK3lwI',
+        key: 'AIzaSyDwSBCTOhWZYjfYneI-YvYXT2s8rTx5BLw',
         v: '3.24',
         libraries: 'places'
       });
