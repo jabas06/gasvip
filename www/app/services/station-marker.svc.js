@@ -2,7 +2,7 @@
   'use strict';
   angular.module('gasvip')
 
-    .factory('StationMarker', function () {
+    .factory('StationMarker', function ($window) {
       return function StationMarker(station, stationMarkerClickClosure) {
 
         var self = this;
@@ -11,11 +11,9 @@
           self[key] = value;
         });
 
-        self.options = {
-          visible: true
-        };
+        self.position = new $window.plugin.google.maps.LatLng(station.latitude, station.longitude);
 
-        self.onClick = stationMarkerClickClosure(self);
+        self.markerClick = stationMarkerClickClosure(self);
         self.refreshMarkerRating = refreshMarkerRating;
 
         refreshMarkerRating();
@@ -26,8 +24,7 @@
 
         function refreshMarkerRating() {
           self.ratingValue = getRatingValue();
-          self.icon = self.ratingValue >= 4 ? 'img/green-pin.png' : 'img/gray-pin.png';
-          self.image = self.ratingValue >= 4 ? 'img/green-station.png' : 'img/gray-station.png';
+          self.icon = self.ratingValue >= 4 ? 'www/img/green-pin.png' : 'www/img/gray-pin.png';
         }
 
         function getRatingValue() {
@@ -61,6 +58,5 @@
           return totalRating;
         }
       };
-
     });
 })();

@@ -83,6 +83,12 @@
           }
         });
 
+      /*  $rootScope.side_menu = document.getElementsByTagName('ion-side-menu')[0];*/
+
+/*        $rootScope.$on('$stateChangeSuccess', function (e, toState, toParams, fromState, fromParams, err) {
+          console.log(toState);
+        });*/
+
         function check(user) {
           if (!user && authRequired($state.current.name)) {
             $state.go(LOGIN_REDIRECT_PATH);

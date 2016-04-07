@@ -29,6 +29,17 @@
           }
         })
 
+        .waitForAuthState('app.map-native', {
+          url: '/map-native',
+          views: {
+            'menuContent': {
+              templateUrl: 'app/map/map-native.html',
+              controller: 'MapNativeCtrl',
+              controllerAs: 'vm'
+            }
+          }
+        })
+
         .state('app.login', {
           url: '/login',
           views: {
@@ -51,7 +62,6 @@
         });
 
       // if none of the above states are matched, use this as the fallback
-      $urlRouterProvider.otherwise('/app/map');
-
+      $urlRouterProvider.otherwise('/app/map-native');
     });
 })();

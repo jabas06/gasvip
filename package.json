@@ -34,7 +34,15 @@
       "locator": "https://github.com/Telerik-Verified-Plugins/Facebook",
       "id": "com.phonegap.plugins.facebookconnect"
     },
-    "cordova.plugins.diagnostic@2.3.14"
+    "cordova.plugins.diagnostic@2.3.14",
+    {
+      "variables": {
+        "API_KEY_FOR_ANDROID": "AIzaSyCvsiD22gP6_m4amfFkBKUPPltb8--fiv4",
+        "API_KEY_FOR_IOS": "AIzaSyBBotDFDTHwizVYQQY0l6qh2CppVqmRMs4"
+      },
+      "locator": "https://github.com/phonegap-googlemaps-plugin/cordova-plugin-googlemaps",
+      "id": "cordova-plugin-googlemaps"
+    }
   ],
   "cordovaPlatforms": [
     "android"
