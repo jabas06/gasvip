@@ -13,6 +13,7 @@
         setCenter: setCenter,
         setZoom: setZoom,
         isMapReady: isMapReady,
+        clear: clear,
         addStationMarker: addStationMarker,
         fitBoundsToPoints: fitBoundsToPoints,
         calculateRoute: calculateRoute,
@@ -25,6 +26,9 @@
 
         isMapReady().then(function (map) {
           map.addMarker(marker, function(mapMarker) {
+            mapMarker.addEventListener(plugin.google.maps.event.INFO_CLICK, function() {
+              alert("InfoWindow is clicked");
+            });
             q.resolve(mapMarker);
           });
         });
@@ -54,10 +58,11 @@
             }
           });
 
-          map.on($window.plugin.google.maps.event.MAP_READY, function (map) {
+          map.on($window.plugin.google.maps.event.MAP_READY, function () {
            $timeout(function(){
              if(!mapInstance)
                mapInstance = map;
+
              q.resolve(mapInstance);
            }, 1000)
           });
@@ -75,8 +80,13 @@
 
       function setZoom(zoom) {
        return isMapReady().then(function (map) {
-          return map.setZoom(zoom);
+          map.setZoom(zoom);
         });
+      }
+
+      function clear() {
+        if(mapInstance)
+          mapInstance.clear();
       }
 
       // ----------
@@ -93,14 +103,14 @@
 
       function fitBoundsToPoints(points) {
         return isMapReady().then(function (map) {
-          var bounds = new $window.plugin.google.maps.LatLngBounds();
+          var latLngPoints = [];
 
           angular.forEach(points, function(point) {
-            bounds.extend(new $window.plugin.google.maps.LatLng(point[0], point[1]));
+            latLngPoints.push(new $window.plugin.google.maps.LatLng(point[0], point[1]));
           });
 
           map.moveCamera({
-            target: bounds
+            target: latLngPoints
           }, function() {
             map.getCameraPosition(function(camera) {
               map.setZoom(camera.zoom - .5);

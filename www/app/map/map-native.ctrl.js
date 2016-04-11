@@ -122,6 +122,7 @@
 
       function retrieveStations(latitude, longitude, radiusKm) {
         if (!geoQuery) {
+          console.log('no geoquery');
           $ionicLoading.show({
             template: '<ion-spinner></ion-spinner> Buscando gasolineras'
           });
@@ -136,6 +137,7 @@
         }
         // Only reload stations if the previous location is 1 km from the current location
         else {
+          console.log('si geoquery');
           if (GeoFire.distance(geoQuery.center(), [latitude, longitude]) > 1) {
             geoQuery.updateCriteria({
               center: [latitude, longitude],
@@ -150,9 +152,12 @@
         stationsInQuery[key] = {latitude: location[0], longitude: location[1]};
 
         stationsService.getStationData(key).then(function (station) {
-          var marker = new StationMarker(station, stationMarkerClickClosure);
-/*          var marker = {
+          var marker = new StationMarker(station, stationMarkerClick);
+         /* var marker = {
             position: new $window.plugin.google.maps.LatLng(station.latitude, station.longitude),
+            markerClick: function(marker) {
+              alert('click');
+            }
           };*/
 
           if (marker !== null) {
@@ -168,12 +173,10 @@
         });
       }
 
-      function stationMarkerClickClosure(stationMarker) {
-        return function () {
+      function stationMarkerClick(stationMarker) {
           vm.selectedStation = stationMarker;
           vm.bottomSheetModal.show();
           vm.displayStationMapActions = true;
-        };
       }
 
       function onGeoQueryReady() {
@@ -475,6 +478,7 @@
 
       function locationChange(position) {
         // $scope.$timeout is needed to trigger the digest cycle when the geolocation arrives and to update all the watchers
+        console.log('location change');
         $timeout(function () {
           var coords = [position.coords.latitude, position.coords.longitude];
 
@@ -508,6 +512,8 @@
 
       function init() {
         addConnectivityListeners();
+
+        nativeMapService.clear();
 
 /*        nativeMapService.isMapReady().then(function (map) {
           var GOOGLE = new $window.plugin.google.maps.LatLng(37.422858, -122.085065);

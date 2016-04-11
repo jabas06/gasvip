@@ -3,7 +3,7 @@
   angular.module('gasvip')
 
     .factory('StationMarker', function ($window) {
-      return function StationMarker(station, stationMarkerClickClosure) {
+      return function StationMarker(station, markerClick) {
 
         var self = this;
 
@@ -13,7 +13,7 @@
 
         self.position = new $window.plugin.google.maps.LatLng(station.latitude, station.longitude);
 
-        self.markerClick = stationMarkerClickClosure(self);
+        self.markerClick = markerClick;
         self.refreshMarkerRating = refreshMarkerRating;
 
         refreshMarkerRating();
