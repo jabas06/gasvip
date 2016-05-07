@@ -122,22 +122,20 @@
 
       function retrieveStations(latitude, longitude, radiusKm) {
         if (!geoQuery) {
-          console.log('no geoquery');
-          $ionicLoading.show({
-            template: '<ion-spinner></ion-spinner> Buscando gasolineras'
-          });
+            $ionicLoading.show({
+              template: '<ion-spinner></ion-spinner> Buscando gasolineras'
+            });
 
-          geoQuery = GeofireRef.query({
-            center: [latitude, longitude],
-            radius: radiusInKm
-          });
+            geoQuery = GeofireRef.query({
+              center: [latitude, longitude],
+              radius: radiusInKm
+            });
 
-          geoQuery.on("key_entered", onStationEntered);
-          geoQuery.on("ready", onGeoQueryReady);
+            geoQuery.on("key_entered", onStationEntered);
+            geoQuery.on("ready", onGeoQueryReady);
         }
         // Only reload stations if the previous location is 1 km from the current location
         else {
-          console.log('si geoquery');
           if (GeoFire.distance(geoQuery.center(), [latitude, longitude]) > 1) {
             geoQuery.updateCriteria({
               center: [latitude, longitude],
@@ -152,31 +150,25 @@
         stationsInQuery[key] = {latitude: location[0], longitude: location[1]};
 
         stationsService.getStationData(key).then(function (station) {
-          var marker = new StationMarker(station, stationMarkerClick);
-         /* var marker = {
-            position: new $window.plugin.google.maps.LatLng(station.latitude, station.longitude),
-            markerClick: function(marker) {
-              alert('click');
-            }
-          };*/
+          var stationData = new StationMarker(station);
 
-          if (marker !== null) {
-            nativeMapService.addStationMarker(marker).then(function (mapMarker) {
+          if (stationData !== null) {
+            console.log('add marker' + key);
+            nativeMapService.addStationMarker(stationData, stationMarkerClick).then(function (mapMarker) {
               // Add the station to the list of stations in the query
-              stationsInQuery[marker.id] = marker;
+              stationsInQuery[stationData.fbKey] = stationData;
 
-              $timeout(function () {
-                stationMarkers.push(marker);
-              });
+              stationMarkers.push(mapMarker);
             });
           }
         });
       }
 
-      function stationMarkerClick(stationMarker) {
-          vm.selectedStation = stationMarker;
-          vm.bottomSheetModal.show();
-          vm.displayStationMapActions = true;
+      function stationMarkerClick(marker) {
+        vm.selectedStation = stationsInQuery[marker.get('fbKey')];
+        vm.bottomSheetModal.show();
+        vm.displayStationMapActions = true;
+        //nativeMapService.setClickable(false);
       }
 
       function onGeoQueryReady() {
@@ -269,7 +261,7 @@
           navigating = true;
           previousNavigatinCoords = [vm.myLocation.latitude, vm.myLocation.longitude];
 
-          vm.bottomSheetModal.hide();
+          closeBottomSheet();
 
           $scope.$broadcast('route-displayed');
         }).catch(function (error) {
@@ -318,7 +310,7 @@
 
       function onlyShowSelectedStation() {
         angular.forEach(stationMarkers, function (marker) {
-          marker.options.visible = vm.selectedStation.id === marker.id;
+          marker.options.visible = vm.selectedStation.fbKey === marker.fbKey;
         });
       }
 
@@ -364,6 +356,7 @@
 
       function closeBottomSheet() {
         vm.bottomSheetModal.hide();
+        //nativeMapService.setClickable(true);
       }
 
       function openRateStationModal() {
@@ -549,6 +542,12 @@
           animation: 'slide-in-up'
         }).then(function (modal) {
           vm.bottomSheetModal = modal;
+
+          $scope.$on('bottom-sheet.shown', function (thisModal) {
+            if(vm.bottomSheetModal) {
+
+            }
+          });
         });
 
         geolocationManager.startWatchLocation(locationChange);

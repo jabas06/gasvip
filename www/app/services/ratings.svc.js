@@ -44,7 +44,7 @@
               if (!isNaN(currentKey)) {
                 ratingNumber = currentKey + 1;
 
-                if (currentRatings[currentKey].stationId === station.id)
+                if (currentRatings[currentKey].stationId === station.fbKey)
                   alreadyRatedStation = true;
               }
             });
@@ -68,7 +68,7 @@
               newRating: {
                 uid: ratingUid,
                 ratingNumber: ratingNumber,
-                stationId: station.id,
+                stationId: station.fbKey,
                 name: station.name,
                 rating: 0,
                 whatToImprove: null,

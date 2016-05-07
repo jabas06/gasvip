@@ -14,6 +14,7 @@
         setZoom: setZoom,
         isMapReady: isMapReady,
         clear: clear,
+        setClickable: setClickable,
         addStationMarker: addStationMarker,
         fitBoundsToPoints: fitBoundsToPoints,
         calculateRoute: calculateRoute,
@@ -21,15 +22,23 @@
         resizeMap: resizeMap
       };
 
-      function addStationMarker(marker) {
+      function setClickable(clickable) {
+        return isMapReady().then(function (map) {
+          map.setClickable(clickable);
+        });
+      }
+
+      function addStationMarker(stationData, markerClick) {
         var q = $q.defer();
 
+        var markerDefinition = angular.copy(stationData);
+        markerDefinition.position =  new $window.plugin.google.maps.LatLng(stationData.latitude, stationData.longitude);
+        markerDefinition.markerClick = markerClick;
+        markerDefinition.disableAutoPan = true;
+
         isMapReady().then(function (map) {
-          map.addMarker(marker, function(mapMarker) {
-            mapMarker.addEventListener(plugin.google.maps.event.INFO_CLICK, function() {
-              alert("InfoWindow is clicked");
-            });
-            q.resolve(mapMarker);
+          map.addMarker(markerDefinition, function(markerInstance) {
+            q.resolve(markerInstance);
           });
         });
 
@@ -43,7 +52,7 @@
         var q = $q.defer();
 
         $ionicPlatform.ready(function() {
-          console.log('get mapNative');
+
           var mapDiv = document.getElementById("mapNative");
           var map = $window.plugin.google.maps.Map.getMap(mapDiv, {
             controls: {
@@ -59,12 +68,11 @@
           });
 
           map.on($window.plugin.google.maps.event.MAP_READY, function () {
-           $timeout(function(){
              if(!mapInstance)
                mapInstance = map;
 
+            console.log('get mapNative');
              q.resolve(mapInstance);
-           }, 1000)
           });
 
           $timeout(function () {

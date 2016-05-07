@@ -15,7 +15,7 @@ angular.module('gasvip')
     function init() {
       $ionicLoading.show();
 
-      ratingsService.getRatingsByStation(vm.station.id).then(function(ratings) {
+      ratingsService.getRatingsByStation(vm.station.fbKey).then(function(ratings) {
         vm.ratings = ratings;
 
         vm.ratingsCount = ratings ? Object.keys(ratings).length : 0;

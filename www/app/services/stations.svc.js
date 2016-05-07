@@ -27,7 +27,7 @@
           var station = snapshot.val();
 
           return {
-            id: snapshot.ref().parent().key(),
+            fbKey: snapshot.ref().parent().key(),
             pemexId: station.pemexId,
             latitude: station.lat,
             longitude: station.lon,

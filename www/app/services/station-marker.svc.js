@@ -2,18 +2,14 @@
   'use strict';
   angular.module('gasvip')
 
-    .factory('StationMarker', function ($window) {
-      return function StationMarker(station, markerClick) {
-
+    .factory('StationMarker', function () {
+      return function StationMarker(station) {
         var self = this;
 
         angular.forEach(station, function (value, key) {
           self[key] = value;
         });
 
-        self.position = new $window.plugin.google.maps.LatLng(station.latitude, station.longitude);
-
-        self.markerClick = markerClick;
         self.refreshMarkerRating = refreshMarkerRating;
 
         refreshMarkerRating();
@@ -28,7 +24,6 @@
         }
 
         function getRatingValue() {
-
           var usersRating = self.rating ? self.rating.sum / self.rating.count : null;
           var profecoScore = self.profeco ? self.profeco.score : null;
           var totalRating;
@@ -41,19 +36,17 @@
             }
           }
 
-
-          if (usersRating !== null && profecoScore !== null) {
+          if (usersRating !== null && profecoScore !== null)
             totalRating = usersRating * profecoScore;
-          }
-          else if (usersRating !== null) {
+
+          else if (usersRating !== null)
             totalRating = usersRating;
-          }
-          else if (profecoScore !== null) {
+
+          else if (profecoScore !== null)
             totalRating = (5 * profecoScore);
-          }
-          else {
+
+          else
             totalRating = null;
-          }
 
           return totalRating;
         }
