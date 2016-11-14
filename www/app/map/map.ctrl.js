@@ -496,7 +496,8 @@
       function showRatingHistory() {
         if (!user)
           return $ionicPopup.show(memberBenefitsPopup);
-
+        
+        closeBottomSheet();
         appModals.showRatingHistory({ station: vm.selectedStation });
       }
 

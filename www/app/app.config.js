@@ -19,12 +19,12 @@
       duration: 15000
     })
 
-    .constant('FirebaseUrl', 'https://gasolineras.firebaseio.com/')
+    .constant('FirebaseUrl', 'https://gasvipdb.firebaseio.com/')
     .constant('SIMPLE_LOGIN_PROVIDERS', ['anonymous', 'facebook'])
     // ------------------------
     .config(function (uiGmapGoogleMapApiProvider) {
       uiGmapGoogleMapApiProvider.configure({
-        key: 'AIzaSyDVhbumpP6UqOTxLYgk5V9aw377JkK3lwI',
+        key: 'AIzaSyC4o-9WYsOfSqyZoBYMU5B2eSSkGzusxoM',
         v: '3.24',
         libraries: 'places'
       });
