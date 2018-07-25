@@ -1,12 +1,12 @@
-(function() {
+(function () {
   'use strict';
   angular.module('gasvip')
 
     .controller('MapCtrl', function ($rootScope, $scope, $timeout, $log, $state,
-                                     $ionicLoading, $ionicPlatform, $ionicModal, $ionicPopup,
-                                     geolocationManager, $cordovaToast, StationMarker,
-                                     GeofireRef, GeoFire, _, appModals, mapService, stationsService,
-                                     mapWidgetsChannel, uiGmapIsReady, user, $cordovaSocialSharing, ratingsService) {
+      $ionicLoading, $ionicPlatform, $ionicModal, $ionicPopup,
+      geolocationManager, messageService, StationMarker,
+      GeofireRef, GeoFire, _, appModals, mapService, stationsService,
+      mapWidgetsChannel, uiGmapIsReady, user, $cordovaSocialSharing, ratingsService) {
       var vm = this;
 
       // Query radius
@@ -73,7 +73,7 @@
           featureType: "poi",
           elementType: "labels",
           stylers: [
-            {visibility: "off"}
+            { visibility: "off" }
           ]
         }],
         minZoom: 7,
@@ -146,7 +146,7 @@
 
       /* Adds new station markers to the map when they enter the query */
       function onStationEntered(key, location) {
-        stationsInQuery[key] = {latitude: location[0], longitude: location[1]};
+        stationsInQuery[key] = { latitude: location[0], longitude: location[1] };
 
         stationsService.getStationData(key).then(function (station) {
           var marker = new StationMarker(station, stationMarkerClickClosure);
@@ -165,7 +165,9 @@
       function stationMarkerClickClosure(stationMarker) {
         return function () {
           vm.selectedStation = stationMarker;
-          vm.bottomSheetModal.show();
+          if (!vm.bottomSheetModal.isShown()) {
+            vm.bottomSheetModal.show();
+          }
           vm.displayStationMapActions = true;
         };
       }
@@ -265,7 +267,7 @@
           $scope.$broadcast('route-displayed');
         }).catch(function (error) {
           if (error.routeDisplayed === false) {
-            $cordovaToast.showShortBottom('Ocurrió un problema al mostrar la ruta');
+            messageService.showShortBottom('Ocurrió un problema al mostrar la ruta');
           }
         });
       }
@@ -278,7 +280,7 @@
             subTitle: '',
             scope: $scope,
             buttons: [
-              {text: 'Cerrar'}
+              { text: 'Cerrar' }
             ]
           });
         }
@@ -295,16 +297,16 @@
 
         $ionicLoading.show();
         $cordovaSocialSharing
-        //.share('Te recomiendo esta gasolinera! ' + uri + '. Puedes encontrar más opciones en GasVIP. ', null, null, '"gasvip.com.mx"') // Share via native share sheet
+          //.share('Te recomiendo esta gasolinera! ' + uri + '. Puedes encontrar más opciones en GasVIP. ', null, null, '"gasvip.com.mx"') // Share via native share sheet
           .share('Te recomiendo esta app para que encuentres las mejores gasolineras en tu zona.', null, null, 'gasvip.com.mx') // Share via native share sheet
           .then(function (result) {
             $log.log(angular.toJson('share: ' + result));
           }, function (err) {
             $log.log(angular.toJson(err));
-            $cordovaToast.showShortBottom('No se compartió el contenido');
+            messageService.showShortBottom('No se compartió el contenido');
           }).finally(function () {
-          $ionicLoading.hide();
-        });
+            $ionicLoading.hide();
+          });
       }
 
       function onlyShowSelectedStation() {
@@ -364,7 +366,7 @@
 
               closeBottomSheet();
 
-              appModals.showRateStation({ newRating: result.newRating}).then(function (rating) {
+              appModals.showRateStation({ newRating: result.newRating }).then(function (rating) {
                 if (rating) {
                   stationsInQuery[result.newRating.stationId].rating = rating;
                   stationsInQuery[result.newRating.stationId].refreshMarkerRating();
@@ -380,7 +382,7 @@
             }
           }).catch(function (error) {
             $log.log(angular.toJson(error));
-            $cordovaToast.showShortBottom('Ocurrió un error. Intenta nuevamente.');
+            messageService.showShortBottom('Ocurrió un error. Intenta nuevamente.');
           });
         }
         else
@@ -395,7 +397,7 @@
             subTitle: '',
             scope: $scope,
             buttons: [
-              {text: 'Cerrar'}
+              { text: 'Cerrar' }
             ]
           });
         }
@@ -412,10 +414,10 @@
 
       function enableMap() {
         uiGmapIsReady.promise(1).then(function () {
-            centerMap();
-          }, function () {
-            recreateMap();
-          }
+          centerMap();
+        }, function () {
+          recreateMap();
+        }
         ).finally(function () {
           $ionicLoading.hide();
         });
@@ -437,17 +439,17 @@
           vm.mapVisible = true;
 
           uiGmapIsReady.promise(1).then(function () {
-              centerMap();
-            }, function (error) {
-              $cordovaToast.showLongCenter('Ocurrió un error al mostrar el mapa');
-            }
+            centerMap();
+          }, function (error) {
+            messageService.showLongCenter('Ocurrió un error al mostrar el mapa');
+          }
           );
         }, 1000);
       }
 
       function addConnectivityListeners() {
         $ionicPlatform.ready(function () {
-          if (ionic.Platform.isWebView()) {
+          if ((window.cordova && window.cordova.platformId !== 'browser')) {
             // Enable the map when the device goes online,
             $rootScope.$on('$cordovaNetwork:online', function (event, networkState) {
               if (lastNetworkStatus !== 'online' && lastNetworkStatus !== '') {
@@ -496,7 +498,7 @@
       function showRatingHistory() {
         if (!user)
           return $ionicPopup.show(memberBenefitsPopup);
-        
+
         closeBottomSheet();
         appModals.showRatingHistory({ station: vm.selectedStation });
       }

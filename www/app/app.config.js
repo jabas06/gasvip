@@ -1,4 +1,4 @@
-(function() {
+(function () {
   'use strict';
   angular.module('gasvip')
 
@@ -25,11 +25,11 @@
     .config(function (uiGmapGoogleMapApiProvider) {
       uiGmapGoogleMapApiProvider.configure({
         key: 'AIzaSyC4o-9WYsOfSqyZoBYMU5B2eSSkGzusxoM',
-        v: '3.24',
+        v: '3.31',
         libraries: 'places'
       });
     })
-    .config(function(FirebaseUrl, $firebaseRefProvider) {
+    .config(function (FirebaseUrl, $firebaseRefProvider) {
       $firebaseRefProvider.registerUrl({
         default: FirebaseUrl,
         geofire: FirebaseUrl + 'geofire',

@@ -2,7 +2,7 @@
   'use strict';
   angular.module('gasvip')
 
-    .controller('RateStationCtrl', function ($scope, $ionicLoading, $cordovaToast, $firebaseAuthService, ratingsService, catalogs, parameters) {
+    .controller('RateStationCtrl', function ($scope, $ionicLoading, messageService, $firebaseAuthService, ratingsService, catalogs, parameters) {
       var vm = $scope;
 
       vm.newStationRating = parameters.newRating;
@@ -43,24 +43,24 @@
                 $ionicLoading.hide();
 
                 if (result.error || !result.committed) {
-                  $cordovaToast.showShortBottom('Tu calificación ha sido guardada y será procesada más tarde');
+                  messageService.showShortBottom('Tu calificación ha sido guardada y será procesada más tarde');
                 }
                 else {
-                  $cordovaToast.showShortBottom('La calificacíón se guardó correctamente.');
+                  messageService.showShortBottom('La calificacíón se guardó correctamente.');
                   $scope.closeModal(result.rating);
                 }
 
               }).catch(function (error) {
                 $ionicLoading.hide();
-                $cordovaToast.showShortBottom('Ocurrió un error al enviar la calificación. Intenta nuevamente');
+                messageService.showShortBottom('Ocurrió un error al enviar la calificación. Intenta nuevamente');
               });
             }
             else {
               close();
-              $cordovaToast.showShortBottom('Debes iniciar sesión');
+              messageService.showShortBottom('Debes iniciar sesión');
             }
           }, function(error) {
-            $cordovaToast.showShortBottom(angular.toJson(error));
+            messageService.showShortBottom(angular.toJson(error));
           });
         }
       }

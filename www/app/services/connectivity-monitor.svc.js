@@ -14,7 +14,7 @@ angular.module('gasvip')
         // ----------
         function isOnline(){
 
-            if(ionic.Platform.isWebView()){
+            if((window.cordova && window.cordova.platformId !== 'browser')){
                 return $cordovaNetwork.isOnline();
             } else {
                 return navigator.onLine;
@@ -24,7 +24,7 @@ angular.module('gasvip')
 
         function isOffline(){
 
-            if(ionic.Platform.isWebView()){
+            if((window.cordova && window.cordova.platformId !== 'browser')){
                 return !$cordovaNetwork.isOnline();
             } else {
                 return !navigator.onLine;

@@ -1,11 +1,11 @@
-(function() {
+(function () {
   'use strict';
   angular.module('gasvip')
 
-    .controller('LoginCtrl', function ($timeout, $log, $state, $ionicHistory, $ionicLoading, $cordovaFacebook, $cordovaToast, $firebaseAuthService, $firebaseRef) {
+    .controller('LoginCtrl', function ($timeout, $log, $state, $ionicHistory, $ionicLoading, $cordovaFacebook, messageService, $firebaseAuthService, $firebaseRef) {
       var self = this;
 
-      var loginScope = ['email', 'user_likes', 'user_about_me'];
+      var loginScope = ['email'];
 
       self.oauthLogin = login;
       self.anonymousLogin = anonymousLogin;
@@ -15,39 +15,16 @@
       // ----------
 
       function login(provider) {
-        if (ionic.Platform.isWebView()) {
-
-          $ionicLoading.show({template: 'Iniciando sesión...'});
-          $cordovaFacebook.logout()
-            .finally(function () {
-              $cordovaFacebook.getLoginStatus().then(function (result) {
-
-                $ionicLoading.hide();
-
-                $log.log('fb login: ' + angular.toJson(result));
-
-                if (result.status === 'connected') {
-
-                  $ionicLoading.show({template: 'Iniciando sesión...'});
-                  $firebaseAuthService.$authWithOAuthToken(provider, result.authResponse.accessToken).then(afterSuccessLogin, showError);
-                }
-                else {
-                  facebookLogin();
-                }
-              }, function () {
-                $ionicLoading.hide();
-
-                facebookLogin();
-              });
-            });
-        }
-        else {
+        if (!window.cordova) {
           oauthLogin(provider);
+          return;
         }
+
+        facebookLogin();
       }
 
       function facebookLogin() {
-        $ionicLoading.show({template: 'Iniciando sesión...'});
+        $ionicLoading.show({ template: 'Iniciando sesión...' });
 
         $cordovaFacebook.login(loginScope).then(function (result) {
 
@@ -56,11 +33,11 @@
 
           if (result.status === 'connected') {
 
-            $ionicLoading.show({template: 'Iniciando sesión...'});
+            $ionicLoading.show({ template: 'Iniciando sesión...' });
             $firebaseAuthService.$authWithOAuthToken('facebook', result.authResponse.accessToken).then(afterSuccessLogin, showError);
           }
           else {
-            $cordovaToast.showShortCenter('No pudimos autenticarte');
+            messageService.showShortCenter('No pudimos autenticarte');
           }
 
         }, function (error) {
@@ -76,7 +53,7 @@
           options.scope = loginScope.join();
         }
 
-        $ionicLoading.show({template: 'Iniciando sesión...'});
+        $ionicLoading.show({ template: 'Iniciando sesión...' });
         $firebaseAuthService.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError);
 
 
@@ -90,7 +67,7 @@
       function afterSuccessLogin(authData) {
         if (authData) {
 
-          $ionicLoading.show({template: 'Iniciando sesión...'});
+          $ionicLoading.show({ template: 'Iniciando sesión...' });
           //Register the user if the account doesn't exist
           $firebaseRef.users.child(authData.uid).once('value', function (data) {
             $ionicLoading.hide();
@@ -99,7 +76,7 @@
 
             if (data.val() === null) {
 
-              $ionicLoading.show({template: 'Iniciando sesión...'});
+              $ionicLoading.show({ template: 'Iniciando sesión...' });
               $firebaseRef.users.child(authData.uid).set({
 
                 name: userInfo.name,
@@ -149,7 +126,7 @@
       function showError(error) {
         $ionicLoading.hide();
         $log.log('fireb login: ' + angular.toJson(error));
-        $cordovaToast.showShortCenter(error);
+        messageService.showShortCenter(error);
       }
 
       // find a suitable info based on the meta info given by each provider

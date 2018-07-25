@@ -1,9 +1,9 @@
-(function() {
+(function () {
   'use strict';
   angular.module('gasvip')
 
     .factory('geolocationManager', function ($q, $log, $cordovaGeolocation, $ionicPlatform,
-                                             $ionicPopup, $cordovaDiagnostic, $cordovaToast) {
+      $ionicPopup, $cordovaDiagnostic, messageService) {
 
       var watchLocation = null;
       var geolocationOptions;
@@ -34,34 +34,39 @@
         var q = $q.defer();
 
         $ionicPlatform.ready(function () {
-          $cordovaDiagnostic.isLocationEnabled().then(function (enabled) {
-            if (enabled) {
-              if (ionic.Platform.isAndroid()) {
-                $cordovaDiagnostic.getLocationMode().then(function (mode) {
-                  if (mode === 'high_accuracy' || mode === 'device_only') {
-                    geolocationOptions = {maximumAge: 1000, timeout: 15000, enableHighAccuracy: true};
-                  }
-                  else {
-                    geolocationOptions = {maximumAge: 1000, timeout: 4000, enableHighAccuracy: false};
-                  }
+          if (!(window.cordova && window.cordova.platformId !== 'browser')) {
+            q.resolve({ maximumAge: 1000, timeout: 15000, enableHighAccuracy: true });
+          }
+          else {
+            $cordovaDiagnostic.isLocationEnabled().then(function (enabled) {
+              if (enabled) {
+                if (ionic.Platform.isAndroid()) {
+                  $cordovaDiagnostic.getLocationMode().then(function (mode) {
+                    if (mode === 'high_accuracy' || mode === 'device_only') {
+                      geolocationOptions = { maximumAge: 1000, timeout: 15000, enableHighAccuracy: true };
+                    }
+                    else {
+                      geolocationOptions = { maximumAge: 1000, timeout: 4000, enableHighAccuracy: false };
+                    }
 
+                    q.resolve(geolocationOptions);
+                  }, function (err) {
+                    q.reject(err);
+                  });
+                }
+                else {
+                  geolocationOptions = { maximumAge: 1000, timeout: 15000, enableHighAccuracy: true };
                   q.resolve(geolocationOptions);
-                }, function (err) {
-                  q.reject(err);
-                });
+                }
               }
               else {
-                geolocationOptions = {maximumAge: 1000, timeout: 15000, enableHighAccuracy: true};
+                geolocationOptions = { maximumAge: 2000, timeout: 1000, enableHighAccuracy: false };
                 q.resolve(geolocationOptions);
               }
-            }
-            else {
-              geolocationOptions = {maximumAge: 2000, timeout: 1000, enableHighAccuracy: false};
-              q.resolve(geolocationOptions);
-            }
-          }, function (err) {
-            q.reject(err);
-          });
+            }, function (err) {
+              q.reject(err);
+            });
+          }
         });
 
         return q.promise;
@@ -85,7 +90,7 @@
             watchLocation.then(
               null,
               function (error) {
-                if (startingView === true) {
+                if (startingView === true && (window.cordova && window.cordova.platformId !== 'browser')) {
                   $cordovaDiagnostic.isLocationEnabled().then(function (enabled) {
                     if (!enabled) {
                       $ionicPopup.confirm({
@@ -105,7 +110,7 @@
                   });
                 }
                 else {
-                  $cordovaToast.showShortCenter('No pudimos determinar tu ubicación. Valida la configuración de tu dispositivo');
+                  messageService.showShortCenter('No pudimos determinar tu ubicación. Valida la configuración de tu dispositivotu dispositivo.');
                 }
 
                 startingView = false;
