@@ -1,11 +1,22 @@
-(function () {
-  'use strict';
-  angular.module('gasvip')
+(function() {
+  "use strict";
+  angular
+    .module("gasvip")
 
-    .controller('LoginCtrl', function ($timeout, $log, $state, $ionicHistory, $ionicLoading, $cordovaFacebook, messageService, $firebaseAuthService, $firebaseRef) {
+    .controller("LoginCtrl", function(
+      $timeout,
+      $log,
+      $state,
+      $ionicHistory,
+      $ionicLoading,
+      $cordovaFacebook,
+      messageService,
+      $firebaseAuth,
+      $firebaseRef
+    ) {
       var self = this;
 
-      var loginScope = ['email'];
+      var loginScopes = ["email"];
 
       self.oauthLogin = login;
       self.anonymousLogin = anonymousLogin;
@@ -24,131 +35,132 @@
       }
 
       function facebookLogin() {
-        $ionicLoading.show({ template: 'Iniciando sesión...' });
+        $ionicLoading.show({ template: "Iniciando sesión..." });
 
-        $cordovaFacebook.login(loginScope).then(function (result) {
+        $cordovaFacebook.login(loginScopes).then(
+          function(result) {
+            $ionicLoading.hide();
 
-          $ionicLoading.hide();
-          $log.log('fb login: ' + angular.toJson(result));
-
-          if (result.status === 'connected') {
-
-            $ionicLoading.show({ template: 'Iniciando sesión...' });
-            $firebaseAuthService.$authWithOAuthToken('facebook', result.authResponse.accessToken).then(afterSuccessLogin, showError);
+            if (result.status === "connected") {
+              $ionicLoading.show({ template: "Iniciando sesión..." });
+              $firebaseAuth()
+                .$signInWithCredential(
+                  firebase.auth.FacebookAuthProvider.credential(
+                    result.authResponse.accessToken
+                  )
+                )
+                .then(afterSuccessLogin, showError);
+            } else {
+              messageService.showShortCenter("No pudimos autenticarte");
+            }
+          },
+          function(error) {
+            $ionicLoading.hide();
+            $log.log("fb login error: " + angular.toJson(error));
           }
-          else {
-            messageService.showShortCenter('No pudimos autenticarte');
-          }
-
-        }, function (error) {
-          $ionicLoading.hide();
-          $log.log('fb login error: ' + angular.toJson(error));
-        });
+        );
       }
 
       function oauthLogin(provider) {
-        var options = {};
+        var authProvider = null;
 
-        if (provider === 'facebook') {
-          options.scope = loginScope.join();
+        if (provider === "facebook") {
+          authProvider = new firebase.auth.FacebookAuthProvider();
+          loginScopes.forEach(function(scope) {
+            authProvider.addScope(scope);
+          });
         }
 
-        $ionicLoading.show({ template: 'Iniciando sesión...' });
-        $firebaseAuthService.$authWithOAuthPopup(provider, options).then(afterSuccessLogin, showError);
-
-
+        $ionicLoading.show({ template: "Iniciando sesión..." });
+        $firebaseAuth()
+          .$signInWithPopup(authProvider)
+          .then(afterSuccessLogin, showError);
       }
 
       function anonymousLogin() {
         self.err = null;
-        $firebaseAuthService.$authAnonymously().then(afterSuccessLogin, showError);
+        $firebaseAuth()
+          .$authAnonymously()
+          .then(afterSuccessLogin, showError);
       }
 
       function afterSuccessLogin(authData) {
         if (authData) {
+          var userResult = authData.user || authData;
 
-          $ionicLoading.show({ template: 'Iniciando sesión...' });
+          $ionicLoading.show({ template: "Iniciando sesión..." });
           //Register the user if the account doesn't exist
-          $firebaseRef.users.child(authData.uid).once('value', function (data) {
-            $ionicLoading.hide();
+          $firebaseRef.users.child(userResult.uid).once(
+            "value",
+            function(data) {
+              $ionicLoading.hide();
 
-            var userInfo = getUserInfo(authData);
+              var userInfo = getUserInfo(userResult);
 
-            if (data.val() === null) {
+              if (data.val() === null) {
+                $ionicLoading.show({ template: "Iniciando sesión..." });
+                $firebaseRef.users.child(userResult.uid).set(
+                  {
+                    name: userInfo.name,
+                    email: userInfo.email,
+                    avatar: userInfo.avatar,
+                    gender: userInfo.gender
+                  },
+                  function(error) {
+                    $ionicLoading.hide();
 
-              $ionicLoading.show({ template: 'Iniciando sesión...' });
-              $firebaseRef.users.child(authData.uid).set({
+                    if (error) {
+                      showError(error);
+                    } else {
+                      redirect();
+                    }
+                  }
+                );
+              } else {
+                $firebaseRef.users.child(userResult.uid).update({
+                  name: userInfo.name,
+                  email: userInfo.email,
+                  avatar: userInfo.avatar,
+                  gender: userInfo.gender
+                });
 
-                name: userInfo.name,
-                email: userInfo.email,
-                avatar: userInfo.avatar,
-                gender: userInfo.gender
-              }, function (error) {
-
-                $ionicLoading.hide();
-
-                if (error) {
-                  showError(error);
-                } else {
-                  redirect();
-                }
-              });
-            }
-            else {
-              $firebaseRef.users.child(authData.uid).update({
-                name: userInfo.name,
-                email: userInfo.email,
-                avatar: userInfo.avatar,
-                gender: userInfo.gender
-              });
-
-              redirect();
-            }
-          }, showError);
+                redirect();
+              }
+            },
+            showError
+          );
         }
       }
 
       function redirect() {
-        $timeout(function () {
-
+        $timeout(function() {
           $ionicHistory.nextViewOptions({
             disableAnimate: true,
             disableBack: true
           });
 
-          $ionicHistory.clearCache().then(function () {
-            $state.go('app.account');
+          $ionicHistory.clearCache().then(function() {
+            $state.go("app.account");
           });
-
         });
       }
 
       function showError(error) {
         $ionicLoading.hide();
-        $log.log('fireb login: ' + angular.toJson(error));
+        $log.log("fireb login: " + angular.toJson(error));
         messageService.showShortCenter(error);
       }
 
       // find a suitable info based on the meta info given by each provider
       function getUserInfo(authData) {
-        switch (authData.provider) {
-          case 'facebook':
-            var fbData = authData.facebook;
-            var fbCachedUserProfile = fbData.cachedUserProfile || {};
-            console.log(angular.toJson("************facebook*****************"));
-            console.log(angular.toJson(fbCachedUserProfile));
-            return {
-              name: fbData.displayName,
-              email: fbData.email || null,
-              avatar: fbData.profileImageURL || null,
-              gender: fbCachedUserProfile.gender || null
-            };
-          case 'google':
-            return {
-              name: authData.google.displayName,
-              email: authData.google.email || null
-            };
-        }
+        var fbData = authData.providerData[0];
+        var fbCachedUserProfile = fbData.cachedUserProfile || {};
+        return {
+          name: fbData.displayName,
+          email: fbData.email || null,
+          avatar: fbData.photoURL || null,
+          gender: fbCachedUserProfile.gender || null
+        };
       }
     });
 })();

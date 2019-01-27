@@ -1,27 +1,26 @@
 <ion-view view-title="Mi cuenta" class="slide-in-up ">
   <ion-nav-buttons side="secondary">
-    <button class="button button-icon ion-more" ng-click="vm.popover.show($event)">
-    </button>
+    <button
+      class="button button-icon ion-more"
+      ng-click="vm.popover.show($event)"
+    ></button>
   </ion-nav-buttons>
   <ion-content>
     <div class="list">
       <div class="list card">
         <div class="item item-avatar">
-          <img ng-src="{{globalUser.facebook.cachedUserProfile.picture.data.url}}">
+          <img ng-src="{{ globalUser.providerData[0].photoURL }}" />
           <h2 ng-bind="vm.profile.name"></h2>
           <p>Bienvenido</p>
         </div>
       </div>
       <div class="card">
-        <div class="item item-divider">
-          Email
-        </div>
-        <div class="item item-text-wrap" ng-bind="vm.profile.email">
-        </div>
+        <div class="item item-divider">Email</div>
+        <div class="item item-text-wrap" ng-bind="vm.profile.email"></div>
       </div>
       <div class="padding">
-        <button class="button button-block button-calm"
-                ng-click="vm.goMap()">Buscar gasolineras
+        <button class="button button-block button-calm" ng-click="vm.goMap()">
+          Buscar gasolineras
         </button>
       </div>
     </div>

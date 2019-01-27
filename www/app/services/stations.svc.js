@@ -1,8 +1,9 @@
 (function() {
-  'use strict';
-  angular.module('gasvip')
+  "use strict";
+  angular
+    .module("gasvip")
 
-    .factory('stationsService', function ($firebaseRef, $firebaseAuthService) {
+    .factory("stationsService", function($firebaseRef, $firebaseAuth) {
       return {
         getStationData: getStationData,
         getPublicStationData: getPublicStationData,
@@ -14,43 +15,50 @@
       // ----------
 
       function getStationData(stationKey) {
-        return $firebaseAuthService.$waitForAuth().then(function(user) {
-          if (user)
-            return getPremiumStationData(stationKey);
-          else
-            return getPublicStationData(stationKey);
-        });
+        return $firebaseAuth()
+          .$waitForSignIn()
+          .then(function(user) {
+            if (user) return getPremiumStationData(stationKey);
+            else return getPublicStationData(stationKey);
+          });
       }
 
       function getPublicStationData(stationKey) {
-        return $firebaseRef.stations.child(stationKey).child('public').once('value').then(function(snapshot) {
-          var station = snapshot.val();
+        return $firebaseRef.stations
+          .child(stationKey)
+          .child("public")
+          .once("value")
+          .then(function(snapshot) {
+            var station = snapshot.val();
 
-          return {
-            id: snapshot.ref().parent().key(),
-            pemexId: station.pemexId,
-            latitude: station.lat,
-            longitude: station.lon,
-            name: station.name
-          };
-        });
+            return {
+              id: snapshot.ref.parent.key,
+              pemexId: station.pemexId,
+              latitude: station.lat,
+              longitude: station.lon,
+              name: station.name
+            };
+          });
       }
 
       function getPremiumStationData(stationKey) {
-        return $firebaseRef.stations.child(stationKey).once('value').then(function(snapshot) {
-          var station = snapshot.val();
+        return $firebaseRef.stations
+          .child(stationKey)
+          .once("value")
+          .then(function(snapshot) {
+            var station = snapshot.val();
 
-          return {
-            id : snapshot.key(),
-            pemexId : station.public.pemexId,
-            latitude : station.public.lat,
-            longitude : station.public.lon,
-            name : station.public.name,
-            profecoExpirationMonths : station.public.profecoExpirationMonths,
-            rating : station.private ? station.private.rating : null,
-            profeco : station.private ? station.private.profeco : null
-          };
-        });
+            return {
+              id: snapshot.key,
+              pemexId: station.public.pemexId,
+              latitude: station.public.lat,
+              longitude: station.public.lon,
+              name: station.public.name,
+              profecoExpirationMonths: station.public.profecoExpirationMonths,
+              rating: station.private ? station.private.rating : null,
+              profeco: station.private ? station.private.profeco : null
+            };
+          });
       }
     });
 })();
